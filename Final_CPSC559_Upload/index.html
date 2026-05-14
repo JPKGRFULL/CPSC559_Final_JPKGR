@@ -1,0 +1,2932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CryptoZombies DApp</title>
+<script src="https://cdn.jsdelivr.net/npm/web3@1.7.5/dist/web3.min.js"></script>
+<style>
+:root {
+  --bg:       #070b14;
+  --surface:  #0d1424;
+  --card:     #111d35;
+  --card2:    #0f1a30;
+  --border:   #1e3058;
+  --border2:  #2a4070;
+  --green:    #00ff88;
+  --green2:   #00cc6a;
+  --green3:   #004d28;
+  --purple:   #8b5cf6;
+  --purple2:  #7c3aed;
+  --red:      #ff4444;
+  --red2:     #cc0000;
+  --amber:    #fbbf24;
+  --amber2:   #d97706;
+  --cyan:     #00d4ff;
+  --cyan2:    #0099cc;
+  --pink:     #ff66aa;
+  --text:     #e2e8f0;
+  --muted:    #4a6080;
+  --muted2:   #6a80a0;
+  --radius:   12px;
+  --radius2:  8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden;}
+
+/* ── NAVBAR ── */
+nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(7,11,20,0.95);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:0 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  height:60px;
+}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-logo-icon{font-size:28px;filter:drop-shadow(0 0 8px #00ff8866);}
+.nav-logo-text{font-size:20px;font-weight:800;letter-spacing:-0.5px;color:var(--text);}
+.nav-logo-text span{color:var(--green);}
+.nav-links{display:flex;gap:2px;}
+.nav-link{
+  padding:6px 14px;border-radius:var(--radius2);
+  background:transparent;border:none;color:var(--muted2);
+  cursor:pointer;font-size:13px;font-weight:500;
+  transition:all .2s;white-space:nowrap;
+}
+.nav-link:hover{color:var(--text);background:rgba(255,255,255,0.05);}
+.nav-link.active{color:var(--green);background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.15);}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.wallet-badge{
+  display:flex;align-items:center;gap:8px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:20px;padding:6px 14px;font-size:12px;
+}
+.wallet-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);}
+.wallet-addr{color:var(--cyan);font-family:monospace;}
+.wallet-bal{color:var(--muted2);}
+#btn-copy{background:none;border:none;cursor:pointer;color:var(--muted2);font-size:12px;padding:2px 6px;border-radius:4px;transition:color .2s;}
+#btn-copy:hover{color:var(--green);}
+
+/* ── LAYOUT ── */
+.container{max-width:1280px;margin:0 auto;padding:24px 20px;}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+
+/* ── HERO BANNER ── */
+.hero{
+  background:linear-gradient(135deg,#0a1628 0%,#1a0a2e 50%,#0a1628 100%);
+  border:1px solid var(--border);border-radius:var(--radius);
+  padding:32px;margin-bottom:24px;position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 30% 50%,rgba(0,255,136,0.05) 0%,transparent 60%),
+             radial-gradient(ellipse at 70% 50%,rgba(139,92,246,0.05) 0%,transparent 60%);
+}
+.hero-text h2{font-size:28px;font-weight:800;margin-bottom:8px;}
+.hero-text h2 span{color:var(--green);}
+.hero-text p{color:var(--muted2);font-size:14px;max-width:400px;}
+.hero-stats{display:flex;gap:24px;}
+.hero-stat{text-align:center;}
+.hero-stat .val{font-size:28px;font-weight:800;color:var(--green);}
+.hero-stat .lbl{font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:1px;}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.card-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.card-title .icon{font-size:18px;}
+
+/* ── FORMS ── */
+.form-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
+.form-group{display:flex;flex-direction:column;gap:5px;flex:1;min-width:160px;}
+label{font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;font-weight:600;}
+input,select{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius2);
+  color:var(--text);padding:10px 14px;font-size:14px;outline:none;width:100%;
+  transition:border-color .2s,box-shadow .2s;
+}
+input:focus,select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(0,255,136,0.08);}
+input::placeholder{color:var(--muted);}
+
+/* ── BUTTONS ── */
+.btn{padding:10px 20px;border:none;border-radius:var(--radius2);cursor:pointer;font-size:13px;font-weight:700;transition:all .2s;white-space:nowrap;letter-spacing:.3px;}
+.btn-green{background:linear-gradient(135deg,var(--green),var(--green2));color:#000;}
+.btn-green:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(0,255,136,0.3);}
+.btn-purple{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;}
+.btn-purple:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(139,92,246,0.3);}
+.btn-red{background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;}
+.btn-red:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(255,68,68,0.3);}
+.btn-amber{background:linear-gradient(135deg,var(--amber),var(--amber2));color:#000;}
+.btn-amber:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(251,191,36,0.3);}
+.btn-cyan{background:linear-gradient(135deg,var(--cyan),var(--cyan2));color:#000;}
+.btn-cyan:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(0,212,255,0.3);}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--muted2);}
+.btn-ghost:hover{border-color:var(--green);color:var(--green);}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none!important;}
+
+/* ── ZOMBIE GRID ── */
+.zombie-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;}
+.zombie-card{
+  background:linear-gradient(160deg,var(--card) 0%,var(--card2) 100%);
+  border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px;text-align:center;
+  transition:border-color .2s,transform .2s,box-shadow .2s;
+  cursor:pointer;position:relative;overflow:hidden;
+}
+.zombie-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(0,255,136,0.04) 0%,transparent 60%);pointer-events:none;}
+.zombie-card:hover{border-color:var(--green);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,255,136,0.1);}
+.zombie-card.selected{border-color:var(--green);box-shadow:0 0 0 2px var(--green),0 8px 24px rgba(0,255,136,0.15);}
+.zombie-card h3{font-size:14px;margin:8px 0 4px;font-weight:700;}
+.zombie-card .level{font-size:11px;color:var(--amber);margin-bottom:4px;font-weight:700;}
+.zombie-card .winrate{font-size:11px;color:var(--green);font-weight:600;margin-bottom:4px;}
+.zombie-card .stats{font-size:11px;color:var(--muted2);display:flex;justify-content:center;gap:10px;margin-bottom:6px;}
+.zombie-card .dna{font-size:9px;color:var(--muted);word-break:break-all;margin-bottom:8px;line-height:1.4;}
+.zombie-badge{position:absolute;top:8px;right:8px;font-size:9px;background:var(--purple2);color:#fff;border-radius:4px;padding:2px 6px;font-weight:700;}
+.zombie-id{position:absolute;top:8px;left:8px;font-size:9px;color:var(--muted2);font-family:monospace;}
+.zombie-actions{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;}
+.zombie-actions .btn{font-size:10px;padding:4px 8px;}
+
+/* ── ALERTS ── */
+.alert{padding:12px 16px;border-radius:var(--radius2);font-size:13px;margin-bottom:12px;display:none;line-height:1.5;}
+.alert.show{display:block;}
+.alert-success{background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.3);color:#86efac;}
+.alert-error{background:rgba(255,68,68,0.08);border:1px solid rgba(255,68,68,0.3);color:#fca5a5;}
+.alert-info{background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.3);color:#67e8f9;}
+
+/* ── SPINNER ── */
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── BATTLE ANIMATIONS ── */
+@keyframes battleShake{0%,100%{transform:translateX(0);}20%{transform:translateX(-8px);}40%{transform:translateX(8px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
+@keyframes battleFlash{0%,100%{opacity:1;}50%{opacity:0.3;}}
+@keyframes victoryBounce{0%,100%{transform:scale(1);}30%{transform:scale(1.15);}60%{transform:scale(0.95);}}
+@keyframes defeatFall{0%{transform:rotate(0deg);opacity:1;}100%{transform:rotate(-15deg);opacity:0.5;}}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 10px rgba(0,255,136,0.3);}50%{box-shadow:0 0 25px rgba(0,255,136,0.7),0 0 50px rgba(0,255,136,0.3);}}
+@keyframes attackSlash{0%{transform:translateX(0) rotate(0deg);}30%{transform:translateX(30px) rotate(5deg);}60%{transform:translateX(-10px) rotate(-3deg);}100%{transform:translateX(0) rotate(0deg);}}
+@keyframes floatUp{0%{transform:translateY(0);opacity:1;}100%{transform:translateY(-40px);opacity:0;}}
+.battle-shake{animation:battleShake .5s ease-in-out;}
+.battle-flash{animation:battleFlash .3s ease-in-out 3;}
+.victory-bounce{animation:victoryBounce .6s ease-in-out;}
+.defeat-fall{animation:defeatFall .8s ease-in-out forwards;}
+.glow-pulse{animation:glowPulse 1.5s ease-in-out infinite;}
+.attack-slash{animation:attackSlash .4s ease-in-out;}
+.battle-arena{
+  display:grid;grid-template-columns:1fr auto 1fr;gap:16px;
+  align-items:center;margin-bottom:20px;
+}
+.battle-vs{
+  font-size:28px;font-weight:900;
+  color:var(--red);text-shadow:0 0 20px rgba(255,68,68,0.5);
+  text-align:center;
+}
+.battle-fighter{text-align:center;padding:16px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);transition:all .3s;}
+.battle-fighter.attacker{border-color:var(--green);}
+.battle-fighter.target{border-color:var(--red);}
+.battle-result-box{
+  text-align:center;padding:24px;border-radius:var(--radius);
+  display:none;margin-bottom:16px;
+}
+.battle-result-box.show{display:block;}
+.battle-result-box.win{background:rgba(0,255,136,0.08);border:2px solid var(--green);}
+.battle-result-box.loss{background:rgba(255,68,68,0.08);border:2px solid var(--red);}
+.result-emoji{font-size:52px;margin-bottom:8px;}
+.result-text{font-size:24px;font-weight:900;}
+.result-text.win{color:var(--green);text-shadow:0 0 20px rgba(0,255,136,0.5);}
+.result-text.loss{color:var(--red);text-shadow:0 0 20px rgba(255,68,68,0.5);}
+.damage-float{
+  position:absolute;font-size:20px;font-weight:900;
+  color:var(--red);pointer-events:none;
+  animation:floatUp 1s ease-out forwards;
+}
+
+/* ── LEADERBOARD ── */
+.leaderboard-table{width:100%;border-collapse:collapse;}
+.leaderboard-table th{font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:1px;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);}
+.leaderboard-table td{padding:12px;border-bottom:1px solid rgba(30,48,88,0.5);font-size:13px;transition:background .2s;}
+.leaderboard-table tr:hover td{background:rgba(255,255,255,0.02);}
+.leaderboard-table tr.me td{background:rgba(0,255,136,0.04);}
+.rank-badge{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;font-weight:800;font-size:13px;}
+.rank-1{background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000;}
+.rank-2{background:linear-gradient(135deg,#c0c0c0,#808080);color:#000;}
+.rank-3{background:linear-gradient(135deg,#cd7f32,#8b4513);color:#fff;}
+.rank-n{background:var(--surface);color:var(--muted2);border:1px solid var(--border);}
+.you-badge{display:inline-block;background:var(--green3);color:var(--green);border:1px solid rgba(0,255,136,0.3);border-radius:4px;font-size:9px;font-weight:800;padding:2px 5px;margin-left:6px;}
+.winrate-bar{height:6px;border-radius:3px;background:var(--surface);overflow:hidden;margin-top:3px;}
+.winrate-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),var(--cyan));transition:width .5s ease;}
+
+/* ── MARKETPLACE ── */
+.market-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
+.market-card{
+  background:linear-gradient(160deg,var(--card),var(--card2));
+  border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px;text-align:center;transition:all .2s;position:relative;
+}
+.market-card:hover{border-color:var(--amber);transform:translateY(-2px);box-shadow:0 8px 24px rgba(251,191,36,0.1);}
+.market-price{font-size:18px;font-weight:800;color:var(--amber);margin:8px 0;}
+.market-price span{font-size:12px;color:var(--muted2);font-weight:400;}
+.listed-badge{position:absolute;top:8px;left:8px;font-size:9px;background:rgba(251,191,36,0.15);color:var(--amber);border:1px solid rgba(251,191,36,0.3);border-radius:4px;padding:2px 6px;font-weight:700;}
+
+/* ── GRAVEYARD ── */
+.graveyard-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;}
+.graveyard-card{
+  background:linear-gradient(160deg,#0a0f18,#0d1424);
+  border:1px solid #1a2035;border-radius:var(--radius);
+  padding:16px;text-align:center;opacity:0.7;
+  position:relative;filter:grayscale(40%);
+}
+.graveyard-card::after{content:'RIP';position:absolute;top:8px;right:8px;font-size:9px;color:#4a5568;font-weight:800;letter-spacing:1px;}
+.graveyard-card h3{font-size:13px;color:#4a5568;}
+
+/* ── SECTION LABEL ── */
+.section-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted2);margin-bottom:8px;font-weight:600;}
+
+/* ── SEARCH ROW ── */
+.search-row{display:flex;gap:10px;margin-bottom:16px;}
+.search-row input{flex:1;}
+
+/* ── KITTY CARD ── */
+.kitty-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.kitty-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius2);padding:10px 14px;display:inline-flex;align-items:center;gap:10px;cursor:pointer;transition:all .2s;}
+.kitty-card:hover,.kitty-card.selected{border-color:var(--amber);background:rgba(251,191,36,0.05);}
+
+/* ── STAT PILLS ── */
+.stat-pill{display:inline-flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:11px;margin:2px;}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:48px;color:var(--muted2);font-size:14px;}
+.empty .empty-icon{font-size:48px;margin-bottom:12px;display:block;opacity:0.4;}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border2);border-radius:var(--radius);padding:28px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+.modal h3{font-size:18px;font-weight:700;margin-bottom:8px;}
+.modal p{color:var(--muted2);font-size:13px;margin-bottom:20px;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
+
+/* ── GRID UTILS ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:600px){.grid-2{grid-template-columns:1fr;}.battle-arena{grid-template-columns:1fr;}.hero-stats{display:none;}.nav-links{display:none;}}
+
+/* ── OWNER RESULT ── */
+#owner-result{margin-top:12px;font-size:13px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius2);display:none;}
+
+footer{text-align:center;padding:24px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);margin-top:40px;}
+
+/* ── ZOMBIE DETAIL MODAL ── */
+.zmodal-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0);
+  z-index:300;
+  display:none;align-items:center;justify-content:center;
+  padding:20px;
+  transition:background .3s ease;
+  perspective:1000px;
+}
+.zmodal-overlay.show{
+  display:flex;
+  background:rgba(0,4,16,0.75);
+}
+.zmodal{
+  background:linear-gradient(160deg,#111d35,#0d1424);
+  border:1px solid #2a4070;border-radius:16px;
+  padding:28px;max-width:520px;width:100%;
+  box-shadow:
+    0 0 0 1px rgba(0,255,136,0.08),
+    0 32px 80px rgba(0,0,0,0.8),
+    0 0 60px rgba(0,20,60,0.5);
+  position:relative;max-height:90vh;overflow-y:auto;
+  transform:scale(0.85) translateY(40px) rotateX(8deg);
+  opacity:0;
+  transition:
+    transform .35s cubic-bezier(0.34,1.56,0.64,1),
+    opacity .25s ease;
+  transform-origin:center bottom;
+  will-change:transform,opacity;
+}
+.zmodal-overlay.show .zmodal{
+  transform:scale(1) translateY(0) rotateX(0deg);
+  opacity:1;
+}
+.zmodal-overlay.closing .zmodal{
+  transform:scale(0.9) translateY(30px) rotateX(6deg);
+  opacity:0;
+  transition:
+    transform .25s cubic-bezier(0.4,0,1,1),
+    opacity .2s ease;
+}
+.zmodal-close{
+  position:absolute;top:14px;right:16px;
+  background:none;border:none;color:#4a6080;
+  font-size:22px;cursor:pointer;transition:color .2s;line-height:1;
+}
+.zmodal-close:hover{color:#e2e8f0;}
+.zmodal-body{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:start;}
+.zmodal-info h2{font-size:20px;font-weight:800;margin-bottom:4px;}
+.zmodal-info .zm-level{color:#fbbf24;font-weight:700;font-size:13px;margin-bottom:10px;}
+.zmodal-info .zm-status{font-size:12px;margin-bottom:12px;}
+.zmodal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
+.zmodal-stat{background:#0a1020;border:1px solid #1e3058;border-radius:8px;padding:8px;text-align:center;}
+.zmodal-stat .zs-val{font-size:20px;font-weight:800;}
+.zmodal-stat .zs-lbl{font-size:10px;color:#4a6080;text-transform:uppercase;letter-spacing:.5px;}
+.zm-dna-box{background:#0a1020;border:1px solid #1e3058;border-radius:8px;padding:10px;margin-bottom:14px;}
+.zm-dna-box .zm-dna-label{font-size:10px;color:#4a6080;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.zm-dna-box .zm-dna-val{font-family:monospace;font-size:12px;color:#00d4ff;word-break:break-all;line-height:1.6;}
+.zm-dna-segments{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.zm-dna-seg{font-size:10px;padding:2px 6px;border-radius:4px;font-family:monospace;}
+.zm-owner{font-size:11px;color:#4a6080;margin-bottom:14px;font-family:monospace;word-break:break-all;}
+.zm-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.zm-actions .btn{font-size:12px;padding:8px 14px;}
+.zm-winrate-bar{height:8px;border-radius:4px;background:#0a1020;overflow:hidden;margin:6px 0;}
+.zm-winrate-fill{height:100%;border-radius:4px;transition:width .5s ease;}
+.zm-kitty-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  background:#4a0030;color:#ffb6c1;
+  border:1px solid rgba(255,182,193,0.3);
+  border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;
+  margin-bottom:10px;
+}
+@media(max-width:480px){.zmodal-body{grid-template-columns:1fr;text-align:center;}}
+
+
+/* ── ZOMBIECOIN ── */
+.zmb-badge{
+  display:flex;align-items:center;gap:6px;
+  background:linear-gradient(135deg,#1a0a00,#2a1500);
+  border:1px solid #f59e0b44;
+  border-radius:20px;padding:5px 14px;font-size:13px;
+  cursor:pointer;transition:all .2s;
+}
+.zmb-badge:hover{border-color:var(--amber);box-shadow:0 0 12px rgba(251,191,36,0.2);}
+.zmb-icon{font-size:16px;}
+.zmb-amount{color:var(--amber);font-weight:800;font-family:monospace;}
+.zmb-label{color:var(--muted2);font-size:11px;}
+
+/* ── AUTO-BUY MODAL ── */
+.autobuy-overlay{
+  position:fixed;inset:0;background:rgba(0,4,16,0.85);
+  z-index:400;display:none;align-items:center;justify-content:center;
+}
+.autobuy-overlay.show{display:flex;}
+.autobuy-modal{
+  background:linear-gradient(160deg,#1a1000,#0d0800);
+  border:1px solid #f59e0b66;border-radius:16px;
+  padding:28px;max-width:380px;width:90%;
+  box-shadow:0 0 40px rgba(251,191,36,0.15);
+  text-align:center;
+  animation:modalIn .3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.autobuy-icon{font-size:52px;margin-bottom:12px;}
+.autobuy-modal h3{font-size:20px;font-weight:800;color:var(--amber);margin-bottom:8px;}
+.autobuy-modal p{font-size:13px;color:var(--muted2);margin-bottom:20px;line-height:1.6;}
+.autobuy-actions{display:flex;gap:10px;justify-content:center;}
+
+/* ── ZMB WALLET TAB ── */
+.zmb-wallet-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.zmb-wallet-card{
+  background:linear-gradient(160deg,#1a1000,#0d0800);
+  border:1px solid #f59e0b33;border-radius:var(--radius);
+  padding:20px;text-align:center;
+}
+.zmb-wallet-card .big-val{font-size:36px;font-weight:900;color:var(--amber);font-family:monospace;}
+.zmb-wallet-card .big-lbl{font-size:12px;color:var(--muted2);margin-top:4px;}
+.zmb-history{max-height:240px;overflow-y:auto;}
+.zmb-history-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 12px;border-bottom:1px solid rgba(30,48,88,0.4);
+  font-size:13px;
+}
+.zmb-history-item:last-child{border-bottom:none;}
+.zmb-pos{color:var(--green);font-weight:700;}
+.zmb-neg{color:var(--red);font-weight:700;}
+
+/* ── BATTLE BET UI ── */
+.bet-section{
+  background:linear-gradient(135deg,#1a1000,#0d0800);
+  border:1px solid #f59e0b33;border-radius:var(--radius);
+  padding:16px;margin-bottom:16px;
+}
+.bet-section .bet-label{font-size:12px;color:var(--amber);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+.bet-quick-btns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.bet-quick-btn{
+  padding:5px 12px;border:1px solid #f59e0b44;border-radius:6px;
+  background:transparent;color:var(--amber);cursor:pointer;font-size:12px;font-weight:700;
+  transition:all .2s;
+}
+.bet-quick-btn:hover{background:#f59e0b22;border-color:var(--amber);}
+.bet-balance-info{font-size:12px;color:var(--muted2);margin-top:6px;}
+
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════ NAVBAR -->
+<nav>
+  <a class="nav-logo" href="#" onclick="switchTab('army');return false;">
+    <span class="nav-logo-icon">🧟</span>
+    <span class="nav-logo-text">Crypto<span>Zombies</span></span>
+  </a>
+
+  <div class="nav-links">
+    <button class="nav-link active" onclick="switchTab('army')">⚔️ Army</button>
+    <button class="nav-link" onclick="switchTab('create')">➕ Create</button>
+    <button class="nav-link" onclick="switchTab('battle')">🥊 Battle</button>
+    <button class="nav-link" onclick="switchTab('kitty')">🐱 Kitty</button>
+    <button class="nav-link" onclick="switchTab('market')">🏪 Market</button>
+    <button class="nav-link" onclick="switchTab('transfer')">↔️ Transfer</button>
+    <button class="nav-link" onclick="switchTab('leaderboard')">🏆 Ranks</button>
+    <button class="nav-link" onclick="switchTab('graveyard')">💀 Graveyard</button>
+    <button class="nav-link" onclick="switchTab('explore')">🌍 Explore</button>
+    <button class="nav-link" onclick="switchTab('zmwallet')">🪙 ZMB</button>
+  </div>
+
+  <div class="nav-right">
+    <div class="zmb-badge" id="zmb-badge" style="display:none" onclick="switchTab('zmwallet')" title="Your ZombieCoins">
+      <span class="zmb-icon">🪙</span>
+      <span class="zmb-amount" id="zmb-amount">0</span>
+      <span class="zmb-label">ZMB</span>
+    </div>
+    <div class="wallet-badge" id="wallet-badge" style="display:none">
+      <span class="wallet-dot"></span>
+      <span class="wallet-addr" id="wallet-addr">—</span>
+      <span class="wallet-bal" id="wallet-bal"></span>
+      <button id="btn-copy" onclick="copyAddress()" title="Copy address">⎘</button>
+    </div>
+    <div id="wallet-disconnected" style="font-size:12px;color:var(--muted2)">Not connected</div>
+  </div>
+</nav>
+
+<div class="container">
+  <div id="alert-global" class="alert"></div>
+
+  <!-- ══════════════════════════════════════════════ MY ARMY -->
+  <div id="tab-army" class="tab-pane active">
+    <div class="hero">
+      <div class="hero-text">
+        <h2>Your Zombie <span>Army</span></h2>
+        <p>Build your undead legion. Battle, breed, and dominate the blockchain.</p>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="val" id="stat-total">0</div><div class="lbl">Zombies</div></div>
+        <div class="hero-stat"><div class="val" id="stat-wins">0</div><div class="lbl">Total Wins</div></div>
+        <div class="hero-stat"><div class="val" id="stat-lvl">0</div><div class="lbl">Max Level</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">⚔️</span> Zombie Gallery</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" onclick="loadZombies(false)">My Zombies</button>
+          <button class="btn btn-purple" onclick="loadZombies(true)">All Zombies</button>
+          <button class="btn btn-green" onclick="loadZombies()">↻ Refresh</button>
+        </div>
+      </div>
+      <div class="search-row">
+        <input id="search-input" placeholder="Search by name, DNA, level…" oninput="filterZombies()">
+      </div>
+      <div id="alert-army" class="alert"></div>
+      <div id="zombie-grid" class="zombie-grid"></div>
+      <div id="army-empty" class="empty" style="display:none"><span class="empty-icon">🧟</span>No zombies yet. Create one!</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ CREATE -->
+  <div id="tab-create" class="tab-pane">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">➕</span> Create a Zombie</div>
+      </div>
+      <p style="font-size:13px;color:var(--muted2);margin-bottom:16px">Each address can only create one zombie for free. Win battles to spawn more!</p>
+      <div id="alert-create" class="alert"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Zombie Name</label>
+          <input id="create-name" placeholder="e.g. DeathClaw X9" maxlength="32">
+        </div>
+        <button class="btn btn-green" onclick="createZombie()" style="align-self:flex-end">⚡ Create Zombie</button>
+      </div>
+      <div id="create-preview" style="margin-top:24px;text-align:center;display:none">
+        <div class="section-label">Live Preview</div>
+        <div id="preview-svg" style="display:inline-block;margin:12px 0;filter:drop-shadow(0 0 20px rgba(0,255,136,0.2))"></div>
+        <div id="preview-info" style="font-size:12px;color:var(--muted2)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ BATTLE -->
+  <div id="tab-battle" class="tab-pane">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">🥊</span> Battle Arena</div>
+        <span style="font-size:12px;color:var(--muted2)">70% win rate · Winning spawns new zombie</span>
+      </div>
+      <div id="alert-battle" class="alert"></div>
+      <div class="battle-arena">
+        <div class="battle-fighter attacker" id="attacker-box">
+          <div class="section-label">Your Zombie</div>
+          <select id="attacker-select" onchange="updateBattlePreview()" style="margin-bottom:10px">
+            <option value="">-- select --</option>
+          </select>
+          <div id="attacker-preview"></div>
+        </div>
+        <div class="battle-vs">VS</div>
+        <div class="battle-fighter target" id="target-box">
+          <div class="section-label">Enemy Zombie</div>
+          <input id="target-id" type="number" min="0" placeholder="Enemy ID" oninput="updateTargetPreview()" style="margin-bottom:10px">
+          <div id="target-preview"></div>
+        </div>
+      </div>
+      <div class="battle-result-box" id="battle-result">
+        <div class="result-emoji" id="battle-emoji"></div>
+        <div class="result-text" id="battle-outcome-text"></div>
+        <div style="font-size:13px;color:var(--muted2);margin-top:8px" id="battle-detail"></div>
+      </div>
+      <div class="bet-section">
+        <div class="bet-label">🪙 Place Your Bet</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Bet Amount (ZMB)</label>
+            <input id="bet-amount" type="number" min="100" value="100" placeholder="Min 100 ZMB">
+          </div>
+        </div>
+        <div class="bet-quick-btns">
+          <button class="bet-quick-btn" onclick="setBet(100)">100</button>
+          <button class="bet-quick-btn" onclick="setBet(250)">250</button>
+          <button class="bet-quick-btn" onclick="setBet(500)">500</button>
+          <button class="bet-quick-btn" onclick="setBetAll()">ALL IN</button>
+        </div>
+        <div class="bet-balance-info" id="bet-balance-info">Your balance: <span id="bet-zmb-display" style="color:var(--amber);font-weight:700">0</span> ZMB</div>
+      </div>
+      <div style="text-align:center">
+        <button class="btn btn-red" style="font-size:16px;padding:14px 40px;letter-spacing:1px" onclick="attackZombie()">⚔️ ATTACK!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ KITTY -->
+  <div id="tab-kitty" class="tab-pane">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">🐱</span> Feed on a CryptoKitty</div>
+      </div>
+      <p style="font-size:13px;color:var(--muted2);margin-bottom:16px">Feeding mutates zombie DNA — last 2 digits become 99, spawning a kitty-zombie with cat ears.</p>
+      <div id="alert-kitty" class="alert"></div>
+      <div class="form-row" style="margin-bottom:16px">
+        <div class="form-group">
+          <label>Your Zombie</label>
+          <select id="kitty-zombie-select"><option value="">-- choose --</option></select>
+        </div>
+      </div>
+      <div class="section-label">Available Kitties</div>
+      <div id="kitty-list" class="kitty-list">Loading kitties…</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Or enter Kitty ID manually</label>
+          <input id="kitty-id-manual" type="number" min="0" value="0">
+        </div>
+        <button class="btn btn-amber" onclick="feedOnKitty()" style="align-self:flex-end">🐱 Feed!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ MARKETPLACE -->
+  <div id="tab-market" class="tab-pane">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">🏪</span> NFT Marketplace</div>
+        <button class="btn btn-green" onclick="loadMarket()">↻ Refresh</button>
+      </div>
+      <div id="alert-market" class="alert"></div>
+      <div class="grid-2" style="margin-bottom:16px">
+        <div class="card" style="margin:0">
+          <div class="section-label">List Your Zombie for Sale</div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label>Your Zombie</label>
+            <select id="market-zombie-select"><option value="">-- choose --</option></select>
+          </div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label>Price (ETH)</label>
+            <input id="market-price" type="number" step="0.001" min="0.001" placeholder="e.g. 0.05">
+          </div>
+          <button class="btn btn-amber" onclick="listZombie()" style="width:100%">🏷️ List for Sale</button>
+        </div>
+        <div class="card" style="margin:0">
+          <div class="section-label">Delist Your Zombie</div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label>Zombie ID to Delist</label>
+            <input id="delist-id" type="number" min="0" placeholder="Zombie ID">
+          </div>
+          <button class="btn btn-red" onclick="delistZombie()" style="width:100%">🗑️ Remove Listing</button>
+        </div>
+      </div>
+      <div class="section-label">Active Listings</div>
+      <div id="market-grid" class="market-grid"></div>
+      <div id="market-empty" class="empty" style="display:none"><span class="empty-icon">🏪</span>No zombies for sale. List yours!</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ TRANSFER -->
+  <div id="tab-transfer" class="tab-pane">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:16px"><span class="icon">↔️</span> Transfer Zombie</div>
+      <div id="alert-transfer" class="alert"></div>
+      <div class="form-row" style="margin-bottom:12px">
+        <div class="form-group">
+          <label>Zombie ID</label>
+          <input id="transfer-zombie-id" type="number" min="0" placeholder="0">
+        </div>
+        <div class="form-group" style="flex:2">
+          <label>Recipient Address</label>
+          <input id="transfer-to" placeholder="0x…">
+        </div>
+        <button class="btn btn-purple" onclick="transferZombie()" style="align-self:flex-end">Transfer</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:16px"><span class="icon">✅</span> Approve Transfer</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Zombie ID</label>
+          <input id="approve-zombie-id" type="number" min="0" placeholder="0">
+        </div>
+        <div class="form-group" style="flex:2">
+          <label>Approved Address</label>
+          <input id="approve-address" placeholder="0x…">
+        </div>
+        <button class="btn btn-amber" onclick="approveZombie()" style="align-self:flex-end">Approve</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:16px"><span class="icon">🔍</span> Owner Lookup</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Zombie ID</label>
+          <input id="owner-zombie-id" type="number" min="0" placeholder="0">
+        </div>
+        <button class="btn btn-cyan" onclick="lookupOwner()" style="align-self:flex-end">Look Up</button>
+      </div>
+      <div id="owner-result">
+        <span class="section-label">Owner: </span>
+        <span id="owner-address" style="color:var(--cyan);font-family:monospace;font-size:13px"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ LEADERBOARD -->
+  <div id="tab-leaderboard" class="tab-pane">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">🏆</span> Global Leaderboard</div>
+        <button class="btn btn-green" onclick="loadLeaderboard()">↻ Refresh</button>
+      </div>
+      <div id="alert-leaderboard" class="alert"></div>
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button class="btn btn-ghost" id="lb-players-btn" onclick="showLbTab('players')">👤 Players</button>
+        <button class="btn btn-purple" id="lb-zombies-btn" onclick="showLbTab('zombies')">🧟 Zombies</button>
+      </div>
+      <div id="lb-players">
+        <table class="leaderboard-table" id="players-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Player</th>
+              <th>Zombies</th>
+              <th>Wins</th>
+              <th>Losses</th>
+              <th>Win Rate</th>
+              <th>Max Level</th>
+            </tr>
+          </thead>
+          <tbody id="players-tbody"></tbody>
+        </table>
+      </div>
+      <div id="lb-zombies" style="display:none">
+        <table class="leaderboard-table" id="zombies-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Zombie</th>
+              <th>Owner</th>
+              <th>Level</th>
+              <th>Wins</th>
+              <th>Win Rate</th>
+            </tr>
+          </thead>
+          <tbody id="zombies-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ GRAVEYARD -->
+  <div id="tab-graveyard" class="tab-pane">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">💀</span> Zombie Graveyard</div>
+        <button class="btn btn-ghost" onclick="loadGraveyard()">↻ Refresh</button>
+      </div>
+      <p style="font-size:13px;color:var(--muted2);margin-bottom:16px">Zombies that were transferred away from your wallet rest here.</p>
+      <div id="alert-graveyard" class="alert"></div>
+      <div id="graveyard-grid" class="graveyard-grid"></div>
+      <div id="graveyard-empty" class="empty" style="display:none"><span class="empty-icon">⚰️</span>Your graveyard is empty. No zombies lost yet!</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ EXPLORE -->
+  <div id="tab-explore" class="tab-pane">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">🌍</span> Chain Explorer</div>
+        <button class="btn btn-green" onclick="loadAllZombies()">↻ Load All</button>
+      </div>
+      <div class="search-row">
+        <input id="explore-search" placeholder="Search all zombies…" oninput="filterExplore()">
+      </div>
+      <div id="alert-explore" class="alert"></div>
+      <div id="explore-grid" class="zombie-grid"></div>
+      <div id="explore-empty" class="empty" style="display:none"><span class="empty-icon">🌍</span>No zombies on chain yet.</div>
+    </div>
+  </div>
+</div>
+
+
+
+  <!-- ══════════════════════════════════════════════ ZMB WALLET -->
+  <div id="tab-zmwallet" class="tab-pane">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">🪙</span> ZombieCoin Wallet</div>
+        <button class="btn btn-green" onclick="refreshZMB()">↻ Refresh</button>
+      </div>
+      <div id="alert-zmwallet" class="alert"></div>
+      <div class="zmb-wallet-grid">
+        <div class="zmb-wallet-card">
+          <div class="big-val" id="zmb-wallet-balance">0</div>
+          <div class="big-lbl">Your ZMB Balance</div>
+          <div style="margin-top:12px;font-size:12px;color:var(--muted2)" id="zmb-starter-status"></div>
+        </div>
+        <div class="zmb-wallet-card">
+          <div class="big-val" style="color:var(--green)" id="zmb-total-supply">0</div>
+          <div class="big-lbl">Total ZMB in Circulation</div>
+          <div style="margin-top:12px;font-size:12px;color:var(--muted2)">Shared across all players</div>
+        </div>
+      </div>
+      <div class="card" style="margin:0 0 16px;background:linear-gradient(135deg,#0a1628,#1a0a2e)">
+        <div class="section-label" style="margin-bottom:12px">Get ZombieCoins</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="text-align:center;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius2)">
+            <div style="font-size:28px;margin-bottom:6px">🎁</div>
+            <div style="font-size:14px;font-weight:700;color:var(--green);margin-bottom:4px">500 ZMB FREE</div>
+            <div style="font-size:12px;color:var(--muted2);margin-bottom:12px">One time starter bonus</div>
+            <button class="btn btn-green" style="width:100%" id="claim-starter-btn" onclick="claimStarter()">Claim Starter</button>
+          </div>
+          <div style="text-align:center;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius2)">
+            <div style="font-size:28px;margin-bottom:6px">💰</div>
+            <div style="font-size:14px;font-weight:700;color:var(--amber);margin-bottom:4px">100 ZMB</div>
+            <div style="font-size:12px;color:var(--muted2);margin-bottom:12px">for 0.01 ETH</div>
+            <button class="btn btn-amber" style="width:100%" onclick="buyZMB()">Buy ZMB</button>
+          </div>
+        </div>
+      </div>
+      <div class="section-label">Battle History & Earnings</div>
+      <div class="card" style="margin:0;padding:0;overflow:hidden">
+        <div class="zmb-history" id="zmb-history">
+          <div class="empty" style="padding:20px"><span class="empty-icon" style="font-size:24px">🪙</span>Battle to earn ZMB!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ Asteroid Game  -->
+ <div id="tab-asteroid" class="tab-pane">
+    <div class="card">
+      <body>
+    <canvas id="gameCanvas" width="2000" height="1000"></canvas>
+    <script>
+      const FPS = 30; // frames per second
+      const FRICTION = 0.7; // friction coefficient of space
+      const LIVES = 3; // starting number of lives
+      const SHIP_SIZE = 30; // ship height in pixels
+      const TURN_SPEED = 300; // ship rotation speedin degrees per second
+      const SHIP_THRUST = 5; // ship acceleration in pixels per second^2
+      const SHIP_EXPLODE_DUR = 0.4; // duration of ship explotion in seconds
+      const INV_DUR = 3; // duration of ship invincibility in seconds
+      const BLINK_DUR = 0.1; // duration of ship invincibility blink in seconds
+      const LASER_MAX = 50; // max number of lasers on screen
+      const LASER_SPD = 500; // speed of lasers in pixels per second
+      const LASER_DIST = 0.6; // max distance laser can travel as fraction of screen width
+      const LASER_EXPLODE_DUR = 0.1; // duration of laser explosion in seconds
+      const ROIDS_NUM = 3; // starting number of asteroids
+      const ROIDS_SIZE = 100; // starting size of asteroids in pixels
+      const ROIDS_SPD = 50; // max starting speed of asteroids in pixels per second
+      const ROIDS_VERT = 10; // average number of vertices on each asteroid
+      const ROIDS_JAG = 0.35; // jaggedness of asteroids
+      const ROIDS_PTS_LRG = 20; // points scored for hitting large asteroid
+      const ROIDS_PTS_MED = 50; // points scored for hitting medium asteroid
+      const ROIDS_PTS_SML = 100; // points scored for hitting small asteroid
+      const SHOW_BOUNDING = false; // show circular hitboxes
+      const SOUND_ON = true; // boolean value for toggling sound on/off
+      const MUSIC_ON = false; // boolean value for toggling music on/off
+      const TEXT_FADE_TIME = 2.5; // text fade time in seconds
+      const HIGH_SCORE_SAVE_KEY = "highScore"; // save key for local storage of high score
+	  var zomDNA = "";
+	  var zomlevel = 0;
+	  var prim_weap = 0;
+	  var sec_weap = 0;
+	  var size_change = 0;
+	  var size_dir = 0;
+	  var ship_color_R = 0;
+	  var ship_color_G = 0;
+	  var ship_color_B = 0;
+	  var zomName = "No Name";
+      /** @type {HTMLCanvasElement} */
+      var canvas = document.getElementById("gameCanvas");
+      var context = canvas.getContext("2d");
+
+      // set up game parameters
+      var level, lives, roids, ship, score, highScore, text, textAlpha;
+      newGame();
+
+      // set up event handlers
+      document.addEventListener("keydown", keyDown);
+      document.addEventListener("keyup", keyUp);
+
+      // set up game loop
+      setInterval(update, 1000 / FPS);
+
+      // set up sound effects
+      var fxLaser = new Sound("sounds/laser.m4a", 7, 0.1);
+      var fxExplode = new Sound("sounds/explode.m4a", 2, 0.25);
+      var fxHit = new Sound("sounds/hit.m4a", 5, 0.2);
+      var fxThrust = new Sound("sounds/thrust.m4a", 1, 0.2);
+
+      // set up music
+      var music = new Music("sounds/music-low.m4a", "sounds/music-high.m4a");
+      var roidsLeft, roidsTotal;
+	  
+	  function showHighScore (){
+		return highScore;
+	  }
+	  function showScore() {
+		return score;
+	  }
+	  async function GetDNALevelAster(dna,level,name) {
+	  	  <!-- const headType  = parseInt(d.slice(0,2))  % 6; -->
+  <!-- const eyeType   = parseInt(d.slice(2,4))  % 8; -->
+  <!-- const mouthType = parseInt(d.slice(4,6))  % 6; -->
+  <!-- const skinH     = parseInt(d.slice(6,8))  % 60 + 80; -->
+  <!-- const skinS     = parseInt(d.slice(8,10)) % 30 + 40; -->
+  <!-- const skinL     = parseInt(d.slice(10,12))% 15 + 25; -->
+  <!-- const shirtType = parseInt(d.slice(12,14))% 5; -->
+  <!-- const isKitty   = d.slice(14,16) === '99'; -->
+	  zomDNA = dna;
+	  zomlevel = parseInt(level);
+	  zomName = name;
+	  ship_color_R = parseInt(zomDNA.slice(0,3)) % 255;
+	  ship_color_G = parseInt(zomDNA.slice(3,6)) % 255;
+	  ship_color_B = parseInt(zomDNA.slice(6,9)) % 255;
+	  prim_weap = parseInt(zomDNA.slice(9,10)) % 8;
+	  sec_weap = parseInt(zomDNA.slice(10,11)) % 9;
+	  size_change = parseInt(zomDNA.slice(11,13)) % 21;
+	  size_dir = parseInt(zomDNA.slice(13,14)) % 2;
+	  }
+	  
+      function Sound(src, maxPlays = 1, vol = 1) {
+        this.playNum = 0;
+        this.plays = [];
+        for (var i = 0; i < maxPlays; i++) {
+          this.plays.push(new Audio(src));
+          this.plays[i].volume = vol;
+        }
+
+        this.play = function () {
+          if (SOUND_ON) {
+            this.playNum = (this.playNum + 1) % maxPlays;
+            this.plays[this.playNum].play();
+          }
+        };
+
+        this.stop = function () {
+          this.plays[this.playNum].pause();
+          this.plays[this.playNum].currentTime = 0;
+        };
+      }
+
+      function Music(srcLow, srcHigh) {
+        this.soundLow = new Audio(srcLow);
+        this.soundHigh = new Audio(srcHigh);
+        this.soundLow.volume = 0.5;
+        this.soundHigh.volume = 0.5;
+        this.low = true;
+        this.tempo = 1; // seconds per beat
+        this.beatTime = 0; // frames left until next beat
+
+        this.play = function () {
+          if (MUSIC_ON) {
+            if (this.low) {
+              this.soundLow.play();
+            } else {
+              this.soundHigh.play();
+            }
+            this.low = !this.low;
+          }
+        };
+
+        this.setAsteroidRatio = function (ratio) {
+          this.tempo = 1 - 0.75 * (1 - ratio);
+        };
+
+        this.beat = function () {
+          if (this.beatTime == 0) {
+            this.play();
+            this.beatTime = Math.ceil(this.tempo * FPS);
+          } else {
+            this.beatTime--;
+          }
+        };
+      }
+
+      function newGame() {
+        // reset variables
+        level = 0;
+        score = 0;
+        lives = LIVES;
+        // create ship
+        ship = newShip();
+
+        // get high score from local storage
+        var scoreString = localStorage.getItem(HIGH_SCORE_SAVE_KEY);
+        if (scoreString == null) {
+          highScore = 0;
+        } else {
+          highScore = parseInt(scoreString);
+        }
+
+        // start first level
+        newLevel();
+      }
+
+      function newLevel() {
+        text = "Level " + (level + 1);
+        textAlpha = 1;
+        createAstroidBelt();
+      }
+//replace color with rgb so that it can use dna
+      function drawShip(x, y, a, color = "white") {
+        context.strokeStyle = `rgb(${ship_color_R},${ship_color_G},${ship_color_B})`;;
+		if (size_dir == 0){
+			context.lineWidth = (SHIP_SIZE - size_change) / 20;
+		}
+        else {
+			context.lineWidth = (SHIP_SIZE + size_change) / 20;
+		}
+        context.beginPath();
+        context.moveTo(
+          // nose of ship
+          x + (4 / 3) * ship.r * Math.cos(a),
+          y - (4 / 3) * ship.r * Math.sin(a)
+        );
+        context.lineTo(
+          // rear left
+          x - ship.r * ((2 / 3) * Math.cos(a) + Math.sin(a)),
+          y + ship.r * ((2 / 3) * Math.sin(a) - Math.cos(a))
+        );
+        context.lineTo(
+          // rear right
+          x - ship.r * ((2 / 3) * Math.cos(a) - Math.sin(a)),
+          y + ship.r * ((2 / 3) * Math.sin(a) + Math.cos(a))
+        );
+        context.closePath();
+        context.stroke();
+      }
+
+      function newShip() {
+        return {
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          r: SHIP_SIZE / 2,
+          a: (90 / 180) * Math.PI, // angle converted to radians
+          rot: 0,
+          explodeTime: 0,
+          blinkNum: Math.ceil(INV_DUR / BLINK_DUR),
+          blinkTime: Math.ceil(BLINK_DUR * FPS),
+          canShoot: true,
+          dead: false,
+          lasers: [],
+          thrusting: false,
+          thrust: {
+            x: 0,
+            y: 0,
+          },
+        };
+      }
+
+	
+
+	  function shootPrimWeapon() {
+		switch(prim_weap){
+			case 0:
+				shootLaser();
+				break;
+			case 1:
+				shootShotgun();
+				break;
+			case 2:
+				shootBurst2();
+				break;
+			case 3:
+				shootBurst3();
+				break;
+			case 4:
+				shootBurst4();
+				break;
+			case 5:
+				shootBF();
+				break;
+			case 6:
+				shootShotgunBF();
+				break;
+			case 7:
+				shootBurstBF();
+				break;
+		}
+	  }	  
+	  
+	  function shootSecWeapon() {
+		switch(sec_weap){
+			case 0:
+				break;
+			case 1:
+				shootLaser();
+				break;
+			case 2:
+				shootShotgun();
+				break;
+			case 3:
+				shootBurst2();
+				break;
+			case 4:
+				shootBurst3();
+				break;
+			case 5:
+				shootBurst4();
+				break;
+			case 6:
+				shootBF();
+				break;
+			case 7:
+				shootShotgunBF();
+				break;
+			case 8:
+				shootBurstBF();
+				break;
+		}
+	  }
+
+
+
+	function helper_shooting(backwards, spread) {
+		
+		ship.lasers.push({
+            x: ship.x + (4 / 3) * ship.r * Math.cos(ship.a),
+            y: ship.y - (4 / 3) * ship.r * Math.sin(ship.a),
+            xv: backwards*(zomlevel/4)*(LASER_SPD * Math.cos(ship.a)+spread) / FPS,
+            yv: -backwards*(zomlevel/4)*(LASER_SPD * Math.sin(ship.a)+spread) / FPS,
+            dist: 0,
+            explodeTime: 0,
+          });
+
+	}
+
+
+
+//NORMAL
+      function shootLaser() {
+        // create laser object
+        if (ship.canShoot && ship.lasers.length < LASER_MAX) {
+          helper_shooting(1,0);
+        }
+        // prevent further shooting
+        ship.canShoot = false;
+      }
+
+//SHOTGUN
+	function shootShotgun() {
+        // create laser object
+		var shot_spread = 30;
+        if (ship.canShoot && ship.lasers.length < LASER_MAX) {
+          helper_shooting(1,0);
+		  helper_shooting(1,-30);
+		  helper_shooting(1,30);
+          fxLaser.play();
+        }
+        // prevent further shooting
+        ship.canShoot = false;
+      }
+
+//SHOTGUNBF
+	function shootShotgunBF() {
+        // create laser object
+		var shot_spread = 30;
+        if (ship.canShoot && ship.lasers.length < LASER_MAX) {
+          helper_shooting(1,0);
+		  helper_shooting(1,-30);
+		  helper_shooting(1,30);
+		  
+		  helper_shooting(-1,0);
+		  helper_shooting(-1,-30);
+		  helper_shooting(-1,30);
+          fxLaser.play();
+        }
+        // prevent further shooting
+        ship.canShoot = false;
+      }
+
+//BURST-3
+	function shootBurst3() {
+        // create laser object
+		var shot_spread = 30;
+
+        if (ship.canShoot && ship.lasers.length < LASER_MAX) {
+          helper_shooting(1,0);
+		  helper_shooting(1.5,0);
+		  helper_shooting(0.5,0);
+		  
+          fxLaser.play();
+        }
+        // prevent further shooting
+        ship.canShoot = false;
+      }
+
+//BURST-2
+	function shootBurst2() {
+        // create laser object
+		var shot_spread = 30;
+
+        if (ship.canShoot && ship.lasers.length < LASER_MAX) {
+          helper_shooting(1,0);
+		  helper_shooting(1.5,0);
+          fxLaser.play();
+        }
+        // prevent further shooting
+        ship.canShoot = false;
+      }
+//BURST-4
+	function shootBurst4() {
+        // create laser object
+		var shot_spread = 30;
+
+        if (ship.canShoot && ship.lasers.length < LASER_MAX) {
+          helper_shooting(1,0);
+		  helper_shooting(1.25,0);
+		  helper_shooting(0.75,0);
+		  helper_shooting(0.5,0);
+          fxLaser.play();
+        }
+        // prevent further shooting
+        ship.canShoot = false;
+      }
+//BURST-BF
+	function shootBurstBF() {
+        // create laser object
+		var shot_spread = 30;
+
+        if (ship.canShoot && ship.lasers.length < LASER_MAX) {
+          helper_shooting(1,0);
+		  helper_shooting(1.5,0);
+		  helper_shooting(0.5,0);
+		  helper_shooting(-1,0);
+		  helper_shooting(-1.5,0);
+		  helper_shooting(-0.5,0);		  
+          fxLaser.play();
+        }
+        // prevent further shooting
+        ship.canShoot = false;
+      }
+//BACKFORWARD
+	function shootBF() {
+        // create laser object
+		var shot_spread = 30;
+
+        if (ship.canShoot && ship.lasers.length < LASER_MAX) {
+          helper_shooting(1,0);
+		  helper_shooting(-1,0);
+          fxLaser.play();
+        }
+        // prevent further shooting
+        ship.canShoot = false;
+      }
+
+      function explodeShip() {
+        ship.explodeTime = Math.ceil(SHIP_EXPLODE_DUR * FPS);
+        fxExplode.play();
+      }
+
+      function gameOver() {
+        ship.dead = true;
+        text = "Game Over";
+        textAlpha = 1;
+        music.tempo = 1;
+		highScoreReward();
+      }
+
+      function createAstroidBelt() {
+        roids = [];
+        roidsTotal = (ROIDS_NUM + level) * 7 * zomlevel;
+        roidsLeft = roidsTotal;
+        var x, y;
+        for (var i = 0; i < ROIDS_NUM + level; i++) {
+          do {
+            x = Math.floor(Math.random() * canvas.width);
+            y = Math.floor(Math.random() * canvas.height);
+          } while (
+            distBetweenPoints(ship.x, ship.y, x, y) <
+            ROIDS_SIZE * 2 + ship.r
+          );
+          roids.push(newAsteroid(x, y, Math.ceil(ROIDS_SIZE / 2)));
+        }
+      }
+
+      function newAsteroid(x, y, r) {
+        var lvlMult = 1 + 0.1 * level*zomlevel;
+        var roid = {
+          x: x,
+          y: y,
+          xv:
+            ((Math.random() * ROIDS_SPD * lvlMult) / FPS) *
+            (Math.random() < 0.5 ? 1 : -1),
+          yv:
+            ((Math.random() * ROIDS_SPD * lvlMult) / FPS) *
+            (Math.random() < 0.5 ? 1 : -1),
+          r: r,
+          a: Math.random() * Math.PI * 2, // asteroid angle in radians
+          vert: Math.floor(Math.random() * (ROIDS_VERT + 1) + ROIDS_VERT / 2),
+          offs: [],
+        };
+        // create vetex offets array
+        for (var i = 0; i < roid.vert; i++) {
+          roid.offs.push(Math.random() * ROIDS_JAG * 2 + 1 - ROIDS_JAG);
+        }
+        return roid;
+      }
+
+      function destroyAsteroid(index) {
+        var x = roids[index].x;
+        var y = roids[index].y;
+        var r = roids[index].r;
+
+        // split asteroid if big enough
+        if (r == Math.ceil(ROIDS_SIZE / 2)) {
+          roids.push(newAsteroid(x, y, Math.ceil(ROIDS_SIZE / 4)));
+          roids.push(newAsteroid(x, y, Math.ceil(ROIDS_SIZE / 4)));
+          score += ROIDS_PTS_LRG;
+        } else if (r == Math.ceil(ROIDS_SIZE / 4)) {
+          roids.push(newAsteroid(x, y, Math.ceil(ROIDS_SIZE / 8)));
+          roids.push(newAsteroid(x, y, Math.ceil(ROIDS_SIZE / 8)));
+          score += ROIDS_PTS_MED;
+        } else {
+          score += ROIDS_PTS_SML;
+        }
+
+        // check high score
+        if (score > highScore) {
+          highScore = score;
+          // save high score to local storage
+          localStorage.setItem(HIGH_SCORE_SAVE_KEY, highScore);
+        }
+
+        // destroy asteroid
+        roids.splice(index, 1);
+        fxHit.play();
+
+        // calculate ratio of remaining asteroids to determine music tempo
+        roidsLeft--;
+        music.setAsteroidRatio(roidsLeft == 0 ? 1 : roidsLeft / roidsTotal);
+
+        // new level when all asteroids destroyed
+        if (roids.length == 0) {
+          level++;
+          newLevel();
+        }
+      }
+
+      function distBetweenPoints(x1, y1, x2, y2) {
+        return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+      }
+
+      function keyDown(/** @type {KeyboardEvent} */ ev) {
+        if (ship.dead) {
+          return;
+        }
+
+        switch (ev.keyCode) {
+          case 32: // spacebar (shoot laser)
+            shootPrimWeapon();
+            break;
+          case 37: // left arrow (rotate ship left)
+            ship.rot = ((TURN_SPEED*(zomlevel/4) / 180) * Math.PI) / FPS;
+            break;
+          case 38: // up arrow (thrust ship forward)
+            ship.thrusting = true;
+            break;
+          case 39: // right arrow (rotate ship right)
+            ship.rot = ((-TURN_SPEED*(zomlevel/4) / 180) * Math.PI) / FPS;
+            break;
+		  case 40: // secondary weapon
+			shootSecWeapon();
+			break;
+		  case 187:
+			newGame();
+			break;
+        }
+      }
+
+      function keyUp(/** @type {KeyboardEvent} */ ev) {
+        if (ship.dead) {
+          return;
+        }
+
+        switch (ev.keyCode) {
+          case 32: // spacebar (shoot laser)
+            ship.canShoot = true;
+            break;
+          case 37: // left arrow (stop rotating left)
+            ship.rot = 0;
+            break;
+          case 38: // up arrow (stop thrusting forward)
+            ship.thrusting = false;
+            break;
+          case 39: // right arrow (stop rotating right)
+            ship.rot = 0;
+            break;
+		  case 40: // special ability
+		    ship.canShoot = true;
+			break;
+        }
+      }
+
+      function update() {
+        var exploding = ship.explodeTime > 0;
+        var blinkOn = ship.blinkNum % 2 == 0;
+
+        // set up music beat
+        music.beat();
+
+        // draw space
+        context.fillStyle = "black";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        // draw asteroids
+        var x, y, r, a, vert, offs;
+        for (var i = 0; i < roids.length; i++) {
+          context.strokeStyle = "slategrey";
+          context.lineWidth = SHIP_SIZE / 20;
+
+          // get asteroid properties
+          x = roids[i].x;
+          y = roids[i].y;
+          r = roids[i].r;
+          a = roids[i].a;
+          vert = roids[i].vert;
+          offs = roids[i].offs;
+
+          // draw path
+          context.beginPath();
+          context.moveTo(
+            x + r * offs[0] * Math.cos(a),
+            y + r * offs[0] * Math.sin(a)
+          );
+
+          // draw polygon
+          for (var j = 1; j < vert; j++) {
+            context.lineTo(
+              x + r * offs[j] * Math.cos(a + (j * Math.PI * 2) / vert),
+              y + r * offs[j] * Math.sin(a + (j * Math.PI * 2) / vert)
+            );
+          }
+          context.closePath();
+          context.stroke();
+
+          if (SHOW_BOUNDING) {
+            context.strokeStyle = "green";
+            context.beginPath();
+            context.arc(x, y, r, 0, Math.PI * 2, false);
+            context.stroke();
+          }
+        }
+
+        // thrust ship
+        if (ship.thrusting && !ship.dead) {
+          ship.thrust.x += (SHIP_THRUST*(zomlevel/4) * Math.cos(ship.a)) / FPS;
+          ship.thrust.y -= (SHIP_THRUST*(zomlevel/4) * Math.sin(ship.a)) / FPS;
+          fxThrust.play();
+
+          if (!exploding && blinkOn) {
+            // draw thruster
+            context.strokeStyle = "red";
+            context.fillStyle = "yellow";
+            context.lineWidth = SHIP_SIZE / 10;
+            context.beginPath();
+            context.moveTo(
+              // rear left
+              ship.x -
+                ship.r * ((2 / 3) * Math.cos(ship.a) + 0.5 * Math.sin(ship.a)),
+              ship.y +
+                ship.r * ((2 / 3) * Math.sin(ship.a) - 0.5 * Math.cos(ship.a))
+            );
+            context.lineTo(
+              // rear center behind ship
+              ship.x - ship.r * 2 * Math.cos(ship.a),
+              ship.y + ship.r * 2 * Math.sin(ship.a)
+            );
+            context.lineTo(
+              // rear right
+              ship.x -
+                ship.r * ((2 / 3) * Math.cos(ship.a) - 0.5 * Math.sin(ship.a)),
+              ship.y +
+                ship.r * ((2 / 3) * Math.sin(ship.a) + 0.5 * Math.cos(ship.a))
+            );
+            context.closePath();
+            context.fill();
+            context.stroke();
+          }
+        } else {
+          // apply friction to slow ship when not thrusting
+          ship.thrust.x -= (FRICTION * ship.thrust.x) / FPS;
+          ship.thrust.y -= (FRICTION * ship.thrust.y) / FPS;
+          fxThrust.stop();
+        }
+
+        // draw ship
+        if (!exploding) {
+          if (blinkOn && !ship.dead) {
+            drawShip(ship.x, ship.y, ship.a);
+          }
+          // handle blinking
+          if (ship.blinkNum > 0) {
+            // reduce blink time
+            ship.blinkTime--;
+            // reduce blink num
+            if (ship.blinkTime == 0) {
+              ship.blinkTime = Math.ceil(BLINK_DUR * FPS);
+              ship.blinkNum--;
+            }
+          }
+        } else {
+          // draw explosion
+          var gradient = context.createRadialGradient(
+            ship.x,
+            ship.y,
+            ship.r * 0.3,
+            ship.x,
+            ship.y,
+            ship.r * 1.5
+          );
+
+          gradient.addColorStop(0, "white");
+          gradient.addColorStop(0.25, "red");
+          gradient.addColorStop(0.5, "red");
+          gradient.addColorStop(0.8, "orange");
+          gradient.addColorStop(0.9, "yellow");
+          gradient.addColorStop(1, "black");
+
+          context.fillStyle = gradient;
+          context.beginPath();
+          context.arc(ship.x, ship.y, ship.r * 1.5, 0, Math.PI * 2, false);
+          context.fill();
+        }
+
+        // show ship's collision hitbox
+        if (SHOW_BOUNDING) {
+          context.strokeStyle = "green";
+          context.beginPath();
+          context.arc(ship.x, ship.y, ship.r, 0, Math.PI * 2, false);
+          context.stroke();
+        }
+
+        // draw lasers
+        for (var i = 0; i < ship.lasers.length; i++) {
+          if (ship.lasers[i].explodeTime == 0) {
+            context.fillStyle = "red";
+            context.beginPath();
+            context.arc(
+              ship.lasers[i].x,
+              ship.lasers[i].y,
+              SHIP_SIZE / 15,
+              0,
+              Math.PI * 2,
+              false
+            );
+            context.fill();
+          } else {
+            // draw explosion
+            var laserGradient = context.createRadialGradient(
+              ship.lasers[i].x,
+              ship.lasers[i].y,
+              ship.r * 0.1,
+              ship.lasers[i].x,
+              ship.lasers[i].y,
+              ship.r * 0.7
+            );
+
+            laserGradient.addColorStop(0, "white");
+            laserGradient.addColorStop(0.25, "red");
+            laserGradient.addColorStop(0.55, "red");
+            laserGradient.addColorStop(0.8, "orange");
+            laserGradient.addColorStop(0.9, "yellow");
+            laserGradient.addColorStop(1, "black");
+            context.fillStyle = laserGradient;
+
+            context.beginPath();
+            context.arc(
+              ship.lasers[i].x,
+              ship.lasers[i].y,
+              ship.r * 0.75,
+              0,
+              Math.PI * 2,
+              false
+            );
+            context.fill();
+          }
+        }
+
+        // draw game text
+        if (textAlpha >= 0) {
+          context.textAlign = "center";
+          context.font = "40px 'Press Start 2P'";
+          context.fillStyle = "rgba(255, 255, 255, " + textAlpha + ")";
+          context.fillText(text, canvas.width / 2, canvas.height * 0.25);
+          textAlpha -= 1.0 / TEXT_FADE_TIME / FPS;
+        } else if (ship.dead) {
+		  
+          newGame();
+        }
+
+        // draw lives
+        var lifeColor;
+        for (var i = 0; i < lives; i++) {
+          lifeColor = exploding && i == lives - 1 ? "red" : "white";
+          drawShip(
+            SHIP_SIZE + i * SHIP_SIZE * 1.3,
+            SHIP_SIZE + 5,
+            0.5 * Math.PI,
+            lifeColor
+          );
+        }
+
+        // draw score
+        context.textAlign = "right";
+        context.fillStyle = "white";
+        context.font = "33px 'Press Start 2P'";
+        context.fillText(score, canvas.width - SHIP_SIZE / 4, SHIP_SIZE + 15);
+
+        // draw score
+        context.textAlign = "center";
+        context.fillStyle = "white";
+        context.font = "20px 'Press Start 2P'";
+        context.fillText(
+           zomlevel + " " + zomName + " High Score:" + highScore,
+          canvas.width / 2,
+          SHIP_SIZE
+        );
+
+        // detect laser hitting asteroid
+        var ax, ay, ar, lx, ly;
+        for (var i = roids.length - 1; i >= 0; i--) {
+          // grab asteroid properties
+          ax = roids[i].x;
+          ay = roids[i].y;
+          ar = roids[i].r;
+
+          // loop through lasers
+          for (var j = ship.lasers.length - 1; j >= 0; j--) {
+            // grab laser properties
+            lx = ship.lasers[j].x;
+            ly = ship.lasers[j].y;
+
+            // detect hits
+            if (
+              ship.lasers[j].explodeTime == 0 &&
+              distBetweenPoints(ax, ay, lx, ly) < ar
+            ) {
+              // destroy asteroid and show laser explosion
+              destroyAsteroid(i);
+              ship.lasers[j].explodeTime = Math.ceil(LASER_EXPLODE_DUR * FPS);
+              break;
+            }
+          }
+        }
+
+        // check for asteroid collisions
+        if (!exploding) {
+          if (ship.blinkNum == 0 && !ship.dead) {
+            for (var i = 0; i < roids.length; i++) {
+              if (
+                distBetweenPoints(ship.x, ship.y, roids[i].x, roids[i].y) <
+                ship.r + roids[i].r
+              ) {
+                explodeShip();
+                destroyAsteroid(i);
+                break;
+              }
+            }
+          }
+
+          // rotate ship
+          ship.a += ship.rot;
+
+          // move ship
+          ship.x += ship.thrust.x;
+          ship.y += ship.thrust.y;
+        } else {
+          ship.explodeTime--;
+
+          // reset ship after explosion and reduce lives
+          if (ship.explodeTime == 0) {
+            lives--;
+            if (lives == 0) {
+              gameOver();
+            } else {
+              ship = newShip();
+            }
+          }
+        }
+
+        // handle edge of screen
+        if (ship.x < 0 - ship.r) {
+          ship.x = canvas.width + ship.r;
+        } else if (ship.x > canvas.width + ship.r) {
+          ship.x = 0 - ship.r;
+        }
+        if (ship.y < 0 - ship.r) {
+          ship.y = canvas.height + ship.r;
+        } else if (ship.y > canvas.height + ship.r) {
+          ship.y = 0 - ship.r;
+        }
+
+        // move lasers
+        for (var i = ship.lasers.length - 1; i >= 0; i--) {
+          // check distance traveled
+          if (ship.lasers[i].dist > LASER_DIST*(zomlevel/4) * canvas.width) {
+            ship.lasers.splice(i, 1); // remove laser
+            continue;
+          }
+          // handle explosion
+          if (ship.lasers[i].explodeTime > 0) {
+            ship.lasers[i].explodeTime--;
+
+            // destroy laser when explode time is up
+            if (ship.lasers[i].explodeTime == 0) {
+              ship.lasers.splice(i, 1);
+              continue;
+            }
+          } else {
+            // move laser
+            ship.lasers[i].x += ship.lasers[i].xv;
+            ship.lasers[i].y += ship.lasers[i].yv;
+
+            // calculate distance traveled
+            ship.lasers[i].dist += Math.sqrt(
+              Math.pow(ship.lasers[i].xv, 2) + Math.pow(ship.lasers[i].yv, 2)
+            );
+          }
+
+          // handle edge of screen
+          if (ship.lasers[i].x < 0) {
+            ship.lasers[i].x = canvas.width;
+          } else if (ship.lasers[i].x > canvas.width) {
+            ship.lasers[i].x = 0;
+          }
+          if (ship.lasers[i].y < 0) {
+            ship.lasers[i].y = canvas.height;
+          } else if (ship.lasers[i].y > canvas.height) {
+            ship.lasers[i].y = 0;
+          }
+        }
+
+        // move asteroids
+        for (var i = 0; i < roids.length; i++) {
+          roids[i].x += roids[i].xv;
+          roids[i].y += roids[i].yv;
+
+          // handle asteroid edge of screen
+          if (roids[i].x < 0 - roids[i].r) {
+            roids[i].x = canvas.width + roids[i].r;
+          } else if (roids[i].x > canvas.width + roids[i].r) {
+            roids[i].x = 0 - roids[i].r;
+          }
+          if (roids[i].y < 0 - roids[i].r) {
+            roids[i].y = canvas.height + roids[i].r;
+          } else if (roids[i].y > canvas.height + roids[i].r) {
+            roids[i].y = 0 - roids[i].r;
+          }
+        }
+      }
+    </script>
+  </body>
+</html>
+
+    </div>
+  </div>
+</div>
+
+
+<footer>CryptoZombies DApp · Local Ganache Network · CPSC-559 Final © 2026</footer>
+
+<!-- ══════════════════════════════════════════════ AUTO-BUY MODAL -->
+<div class="autobuy-overlay" id="autobuy-modal">
+  <div class="autobuy-modal">
+    <div class="autobuy-icon">🪙</div>
+    <h3>Not Enough ZMB!</h3>
+    <p>You need at least <strong style="color:var(--amber)">100 ZMB</strong> to battle.<br>Buy <strong style="color:var(--amber)">100 ZMB</strong> for <strong style="color:var(--green)">0.01 ETH</strong> to continue?</p>
+    <div id="autobuy-balance" style="font-size:13px;color:var(--muted2);margin-bottom:16px"></div>
+    <div class="autobuy-actions">
+      <button class="btn btn-ghost" onclick="closeAutoBuy()">Cancel</button>
+      <button class="btn btn-amber" onclick="autoBuyAndBattle()">💰 Buy & Battle</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ BREED NAME MODAL -->
+<div class="modal-overlay" id="breed-modal">
+  <div class="modal">
+    <h3>🧬 Name Your New Zombie</h3>
+    <p>Your zombie won the battle! Name the offspring before it spawns.</p>
+    <div class="form-group">
+      <label>Zombie Name (3-20 chars)</label>
+      <input id="breed-name-input" placeholder="e.g. Shadow Spawn" maxlength="20" minlength="3">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeBreedModal()">Cancel</button>
+      <button class="btn btn-green" onclick="confirmBreedName()">Spawn Zombie</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// GLOBALS
+// ═══════════════════════════════════════════════════
+let web3, zombieContract, kittyContract, marketContract, account;
+let zmbBalance = 0;
+let zmbHistory = [];
+let pendingBattleArgs = null;
+let myZombies = [], allZombies = [], graveyardZombies = [];
+const TABS = ['army','create','battle','kitty','market','transfer','leaderboard','graveyard','explore','zmwallet'];
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+window.addEventListener('load', init);
+
+async function init() {
+  if (!window.ethereum) { showAlert('global','MetaMask not detected.','error'); return; }
+  try {
+    web3 = new Web3(window.ethereum);
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const accounts = await web3.eth.getAccounts();
+    account = accounts[0];
+
+    const bal = await web3.eth.getBalance(account);
+    const ethBal = parseFloat(web3.utils.fromWei(bal,'ether')).toFixed(2);
+
+    document.getElementById('wallet-addr').textContent = account.slice(0,6)+'…'+account.slice(-4);
+    document.getElementById('wallet-bal').textContent  = ethBal+' ETH';
+    document.getElementById('wallet-badge').style.display = 'flex';
+    document.getElementById('wallet-disconnected').style.display = 'none';
+
+    const netId = await web3.eth.net.getId();
+    if (netId != 1337) {
+      showAlert('global','⚠️ Wrong network! Please switch MetaMask to Ganache Local (Chain ID 1337).','error');
+      return;
+    }
+
+    // Load ZombieMarketplace (extends ZombieOwnership)
+    const mRes  = await fetch('./build/contracts/ZombieBattle.json');
+    const mData = await mRes.json();
+    const mNet  = mData.networks[netId];
+    if (!mNet) { showAlert('global','Contracts not deployed. Run: truffle migrate --reset','error'); return; }
+    zombieContract = new web3.eth.Contract(mData.abi, mNet.address);
+    marketContract = zombieContract; // same contract
+
+    // Load LocalKitty
+    try {
+      const kRes  = await fetch('./build/contracts/LocalKitty.json');
+      const kData = await kRes.json();
+      const kNet  = kData.networks[netId];
+      if (kNet) { kittyContract = new web3.eth.Contract(kData.abi, kNet.address); loadKitties(); }
+    } catch(e) { console.warn('LocalKitty:', e); }
+
+    await loadZombies();
+    populateSelects();
+
+    window.ethereum.on('accountsChanged', a => { account = a[0]; init(); });
+
+    // Init ZMB
+    await refreshZMB();
+    await checkStarterClaim();
+  } catch(e) { console.error(e); showAlert('global','Init failed: '+e.message,'error'); }
+}
+
+function copyAddress() {
+  navigator.clipboard.writeText(account);
+  const btn = document.getElementById('btn-copy');
+  btn.textContent = '✓'; setTimeout(() => btn.textContent = '⎘', 1500);
+}
+
+// ═══════════════════════════════════════════════════
+// DNA → SVG AVATAR
+// ═══════════════════════════════════════════════════
+function zombieSVG(dna, size) {
+  size = size || 120;
+  const d = String(dna).padStart(16,'0');
+
+  const headType  = parseInt(d.slice(0,2))  % 6;
+  const eyeType   = parseInt(d.slice(2,4))  % 8;
+  const mouthType = parseInt(d.slice(4,6))  % 6;
+  const skinH     = parseInt(d.slice(6,8))  % 60 + 80;
+  const skinS     = parseInt(d.slice(8,10)) % 30 + 40;
+  const skinL     = parseInt(d.slice(10,12))% 15 + 25;
+  const shirtType = parseInt(d.slice(12,14))% 5;
+  const isKitty   = d.slice(14,16) === '99';
+
+  const skin   = `hsl(${skinH},${skinS}%,${skinL}%)`;
+  const skinLt = `hsl(${skinH},${skinS}%,${skinL+12}%)`;
+  const skinDk = `hsl(${skinH},${skinS}%,${skinL-10}%)`;
+  const eyeGlow = ['#ff2020','#00ff66','#ff00ff','#00cfff','#ffaa00','#ff6600','#aa00ff','#00ffcc'][eyeType];
+  const shirts  = ['#4a0080','#800020','#003366','#1a4d00','#4d3300'];
+  const shirt   = shirts[shirtType];
+
+  const heads = [
+    `<ellipse cx="60" cy="46" rx="30" ry="34" fill="${skin}"/><ellipse cx="60" cy="46" rx="28" ry="32" fill="none" stroke="${skinDk}" stroke-width="0.5" opacity="0.4"/>`,
+    `<rect x="30" y="16" width="60" height="62" rx="10" fill="${skin}"/>`,
+    `<ellipse cx="60" cy="44" rx="24" ry="36" fill="${skin}"/>`,
+    `<ellipse cx="60" cy="48" rx="36" ry="28" fill="${skin}"/>`,
+    `<polygon points="60,12 92,30 88,70 32,70 28,30" fill="${skin}"/>`,
+    `<ellipse cx="60" cy="46" rx="30" ry="32" fill="${skin}"/><ellipse cx="36" cy="34" rx="8" ry="7" fill="${skin}"/><ellipse cx="84" cy="30" rx="6" ry="5" fill="${skin}"/>`
+  ];
+
+  const eyes = [
+    `<circle cx="46" cy="44" r="9" fill="#110000"/><circle cx="74" cy="44" r="9" fill="#110000"/><circle cx="46" cy="44" r="6" fill="${eyeGlow}" opacity="0.9"/><circle cx="74" cy="44" r="6" fill="${eyeGlow}" opacity="0.9"/><circle cx="46" cy="44" r="2" fill="#fff"/><circle cx="74" cy="44" r="2" fill="#fff"/>`,
+    `<rect x="38" y="38" width="16" height="12" rx="3" fill="#000"/><rect x="66" y="38" width="16" height="12" rx="3" fill="#000"/><line x1="40" y1="40" x2="52" y2="48" stroke="${eyeGlow}" stroke-width="2.5" stroke-linecap="round"/><line x1="52" y1="40" x2="40" y2="48" stroke="${eyeGlow}" stroke-width="2.5" stroke-linecap="round"/><line x1="68" y1="40" x2="80" y2="48" stroke="${eyeGlow}" stroke-width="2.5" stroke-linecap="round"/><line x1="80" y1="40" x2="68" y2="48" stroke="${eyeGlow}" stroke-width="2.5" stroke-linecap="round"/>`,
+    `<circle cx="46" cy="44" r="10" fill="#0a0a0a"/><circle cx="74" cy="44" r="10" fill="#0a0a0a"/><circle cx="46" cy="44" r="7" fill="none" stroke="${eyeGlow}" stroke-width="1.5" opacity="0.8"/><circle cx="46" cy="44" r="4" fill="none" stroke="${eyeGlow}" stroke-width="1.5" opacity="0.9"/><circle cx="46" cy="44" r="1.5" fill="${eyeGlow}"/><circle cx="74" cy="44" r="7" fill="none" stroke="${eyeGlow}" stroke-width="1.5" opacity="0.8"/><circle cx="74" cy="44" r="4" fill="none" stroke="${eyeGlow}" stroke-width="1.5" opacity="0.9"/><circle cx="74" cy="44" r="1.5" fill="${eyeGlow}"/>`,
+    `<ellipse cx="46" cy="44" rx="9" ry="9" fill="#111"/><ellipse cx="74" cy="44" rx="9" ry="9" fill="#111"/><ellipse cx="46" cy="44" rx="8" ry="8" fill="${eyeGlow}" opacity="0.7"/><ellipse cx="74" cy="44" rx="8" ry="8" fill="${eyeGlow}" opacity="0.7"/><ellipse cx="46" cy="44" rx="2" ry="7" fill="#000"/><ellipse cx="74" cy="44" rx="2" ry="7" fill="#000"/>`,
+    `<polygon points="46,36 56,52 36,52" fill="#000"/><polygon points="74,36 84,52 64,52" fill="#000"/><polygon points="46,38 54,50 38,50" fill="${eyeGlow}" opacity="0.8"/><polygon points="74,38 82,50 66,50" fill="${eyeGlow}" opacity="0.8"/>`,
+    `<ellipse cx="46" cy="46" rx="9" ry="9" fill="#0a0a0a"/><ellipse cx="74" cy="46" rx="9" ry="9" fill="#0a0a0a"/><ellipse cx="46" cy="46" rx="7" ry="7" fill="${eyeGlow}" opacity="0.85"/><ellipse cx="74" cy="46" rx="7" ry="7" fill="${eyeGlow}" opacity="0.85"/><rect x="37" y="37" width="18" height="9" fill="${skin}" rx="1"/><rect x="65" y="37" width="18" height="9" fill="${skin}" rx="1"/>`,
+    `<circle cx="46" cy="44" r="10" fill="#000" opacity="0.9"/><circle cx="74" cy="44" r="10" fill="#000" opacity="0.9"/><circle cx="46" cy="44" r="8" fill="none" stroke="${eyeGlow}" stroke-width="3" opacity="0.9"/><circle cx="74" cy="44" r="8" fill="none" stroke="${eyeGlow}" stroke-width="3" opacity="0.9"/><circle cx="46" cy="44" r="3" fill="${eyeGlow}"/><circle cx="74" cy="44" r="3" fill="${eyeGlow}"/>`,
+    `<ellipse cx="46" cy="44" rx="11" ry="10" fill="#fff"/><ellipse cx="74" cy="44" rx="11" ry="10" fill="#fff"/><circle cx="46" cy="44" r="6" fill="${eyeGlow}"/><circle cx="74" cy="44" r="6" fill="${eyeGlow}"/><circle cx="46" cy="44" r="3" fill="#000"/><circle cx="74" cy="44" r="3" fill="#000"/>`
+  ];
+
+  const mouths = [
+    `<path d="M42,64 Q60,72 78,64" fill="none" stroke="${skinDk}" stroke-width="1.5"/><rect x="48" y="63" width="5" height="7" rx="1" fill="#e8e8e8"/><rect x="55" y="63" width="5" height="8" rx="1" fill="#e8e8e8"/><rect x="62" y="63" width="5" height="7" rx="1" fill="#e8e8e8"/><rect x="69" y="63" width="4" height="6" rx="1" fill="#e8e8e8"/>`,
+    `<line x1="42" y1="67" x2="78" y2="67" stroke="${skinDk}" stroke-width="1.5"/><line x1="48" y1="63" x2="48" y2="71" stroke="${skinDk}" stroke-width="1.5"/><line x1="55" y1="62" x2="55" y2="72" stroke="${skinDk}" stroke-width="1.5"/><line x1="62" y1="62" x2="62" y2="72" stroke="${skinDk}" stroke-width="1.5"/><line x1="69" y1="63" x2="69" y2="71" stroke="${skinDk}" stroke-width="1.5"/>`,
+    `<path d="M40,62 Q50,72 60,65 Q70,72 80,62" fill="${skinDk}" opacity="0.6"/><path d="M44,63 L50,68 L56,63" fill="#c8c8c8"/><path d="M64,63 L70,68 L76,63" fill="#c8c8c8"/>`,
+    `<ellipse cx="60" cy="67" rx="14" ry="8" fill="#1a0000"/><ellipse cx="60" cy="63" rx="14" ry="4" fill="${skin}"/><rect x="50" y="60" width="5" height="6" rx="1" fill="#ddd"/><rect x="57" y="60" width="6" height="7" rx="1" fill="#ddd"/><rect x="65" y="60" width="5" height="6" rx="1" fill="#ddd"/>`,
+    `<path d="M44,65 Q55,75 72,62" fill="none" stroke="${skinDk}" stroke-width="2" stroke-linecap="round"/><rect x="58" y="63" width="4" height="6" rx="1" fill="#ddd"/>`,
+    `<path d="M42,63 Q60,73 78,63" fill="#1a0000" opacity="0.8"/><polygon points="50,63 54,63 52,72" fill="#fff"/><polygon points="58,63 62,63 60,74" fill="#fff"/><polygon points="66,63 70,63 68,72" fill="#fff"/>`
+  ];
+
+  const scarIdx = parseInt(d.slice(1,3)) % 4;
+  const scars = [
+    `<line x1="50" y1="34" x2="44" y2="52" stroke="${skinDk}" stroke-width="1.5" opacity="0.7"/>`,
+    `<path d="M72,30 L68,38 L74,42" fill="none" stroke="${skinDk}" stroke-width="1.5" opacity="0.7"/>`,
+    `<line x1="38" y1="50" x2="46" y2="58" stroke="${skinDk}" stroke-width="2" opacity="0.6"/><line x1="40" y1="50" x2="48" y2="58" stroke="${skinDk}" stroke-width="1" opacity="0.4"/>`,
+    `<circle cx="55" cy="38" r="3" fill="${skinDk}" opacity="0.5"/>`
+  ];
+
+  const ears = isKitty
+    ? `<polygon points="30,28 20,8 42,18" fill="${skin}"/><polygon points="90,28 100,8 78,18" fill="${skin}"/><polygon points="30,28 23,12 38,20" fill="#ff9999" opacity="0.8"/><polygon points="90,28 97,12 82,20" fill="#ff9999" opacity="0.8"/>`
+    : `<polygon points="30,28 22,10 40,22" fill="${skin}"/><polygon points="90,28 98,10 80,22" fill="${skin}"/><polygon points="30,28 25,14 37,21" fill="${skinDk}" opacity="0.5"/><polygon points="90,28 95,14 83,21" fill="${skinDk}" opacity="0.5"/>`;
+
+  const body = `
+    <ellipse cx="60" cy="82" rx="20" ry="8" fill="${shirt}"/>
+    <rect x="40" y="80" width="40" height="32" rx="4" fill="${shirt}"/>
+    <rect x="40" y="80" width="40" height="8" fill="rgba(255,255,255,0.1)"/>
+    <rect x="38" y="80" width="12" height="28" rx="5" fill="${shirt}"/>
+    <rect x="70" y="80" width="12" height="28" rx="5" fill="${shirt}"/>
+    <ellipse cx="44" cy="109" rx="7" ry="5" fill="${skin}"/>
+    <ellipse cx="76" cy="109" rx="7" ry="5" fill="${skin}"/>
+    <rect x="47" y="112" width="13" height="20" rx="3" fill="#1a1a2e"/>
+    <rect x="60" y="112" width="13" height="20" rx="3" fill="#16213e"/>`;
+
+  const neck = `<rect x="52" y="76" width="16" height="10" rx="3" fill="${skin}"/>`;
+  const eyeAmbient = `<ellipse cx="46" cy="44" rx="12" ry="10" fill="${eyeGlow}" opacity="0.06"/><ellipse cx="74" cy="44" rx="12" ry="10" fill="${eyeGlow}" opacity="0.06"/>`;
+  const kittyBadge = isKitty ? `<rect x="28" y="126" width="64" height="14" rx="4" fill="#4a0030" opacity="0.9"/><text x="60" y="136" text-anchor="middle" font-size="8" fill="#ffb6c1" font-family="monospace">✦ KITTY DNA</text>` : '';
+  const uid = dna.toString().slice(-6);
+
+  return `<svg width="${size}" height="${size}" viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="bg${uid}" cx="50%" cy="40%" r="60%">
+        <stop offset="0%" stop-color="hsl(${skinH},20%,12%)"/>
+        <stop offset="100%" stop-color="#060810"/>
+      </radialGradient>
+    </defs>
+    <rect width="120" height="140" rx="12" fill="url(#bg${uid})"/>
+    <rect width="120" height="140" rx="12" fill="none" stroke="hsl(${skinH},30%,20%)" stroke-width="1" opacity="0.5"/>
+    ${body}${neck}${ears}
+    <g>${heads[headType]}</g>
+    ${eyeAmbient}${eyes[eyeType]}${mouths[mouthType]}${scars[scarIdx]}
+    ${kittyBadge}
+  </svg>`;
+}
+
+function kittyAvatarSVG(genes, size) {
+  size = size || 48;
+  const g = String(genes).padStart(15,'0');
+  const hue = parseInt(g.slice(0,3)) % 360;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+    <rect width="48" height="48" rx="8" fill="#1a0a2e"/>
+    <ellipse cx="24" cy="26" rx="14" ry="12" fill="hsl(${hue},60%,55%)"/>
+    <polygon points="12,18 8,6 18,14" fill="hsl(${hue},60%,55%)"/>
+    <polygon points="36,18 40,6 30,14" fill="hsl(${hue},60%,55%)"/>
+    <polygon points="12,18 10,10 16,15" fill="hsl(${hue},80%,80%)"/>
+    <polygon points="36,18 38,10 32,15" fill="hsl(${hue},80%,80%)"/>
+    <ellipse cx="19" cy="25" rx="4" ry="5" fill="#111"/>
+    <ellipse cx="29" cy="25" rx="4" ry="5" fill="#111"/>
+    <ellipse cx="19" cy="25" rx="2" ry="3" fill="hsl(${(hue+180)%360},80%,70%)"/>
+    <ellipse cx="29" cy="25" rx="2" ry="3" fill="hsl(${(hue+180)%360},80%,70%)"/>
+    <ellipse cx="24" cy="30" rx="3" ry="2" fill="hsl(${hue},40%,70%)"/>
+    <line x1="16" y1="30" x2="6" y2="28" stroke="#aaa" stroke-width="1"/>
+    <line x1="16" y1="32" x2="5" y2="32" stroke="#aaa" stroke-width="1"/>
+    <line x1="32" y1="30" x2="42" y2="28" stroke="#aaa" stroke-width="1"/>
+    <line x1="32" y1="32" x2="43" y2="32" stroke="#aaa" stroke-width="1"/>
+  </svg>`;
+}
+
+// ═══════════════════════════════════════════════════
+// TRANSFER INFO TO ASTEROIDS
+// ═══════════════════════════════════════════════════
+
+function selectZombieForAsteroid(id) {
+  const z = myZombies.find(z => z.id === parseInt(id));
+  if (!z) return;
+
+  GetDNALevelAster(z.dna, z.level, z.name);
+  switchTab('asteroid');
+  newGame();
+}
+
+
+// ═══════════════════════════════════════════════════
+// ZMB REWARD HELPER
+// ═══════════════════════════════════════════════════
+async function highScoreReward() {
+	var highScoreCheck = showHighScore();
+	var highBar = 5000;
+	if (highScoreCheck > highBar) {
+		highBar += highScoreCheck;
+		highBar += 5000;
+		try {
+			const ethCost = web3.utils.toWei((0.01*500).toFixed(4), 'ether');
+			showAlert('zmwallet','<span class="spinner"></span> Winning '+(highBar*100)+' ZMB…','info');
+			await zombieContract.methods.buyCoins().send({ from: account, value: ethCost });
+			showAlert('zmwallet','💰 '+(highBar*100)+' ZMB won!','success');
+			addZMBHistory('💰 Won', +(highBar*100));
+			await refreshZMB();
+		} catch(e) { showAlert('zmwallet', e.message, 'error'); }
+	}
+	
+
+}
+
+// ═══════════════════════════════════════════════════
+// WIN RATE HELPER
+// ═══════════════════════════════════════════════════
+function calcWinRate(wins, losses) {
+  const total = wins + losses;
+  if (total === 0) return null;
+  return Math.round((wins / total) * 100);
+}
+
+function winRateHTML(wins, losses) {
+  const wr = calcWinRate(wins, losses);
+  if (wr === null) return '<span style="color:var(--muted2);font-size:11px">No battles yet</span>';
+  const color = wr >= 70 ? 'var(--green)' : wr >= 50 ? 'var(--amber)' : 'var(--red)';
+  return `<div class="winrate-bar"><div class="winrate-fill" style="width:${wr}%;background:${color}"></div></div>
+          <span style="color:${color};font-size:11px;font-weight:700">${wr}% Win Rate</span>`;
+}
+
+// ═══════════════════════════════════════════════════
+// LOAD ZOMBIES
+// ═══════════════════════════════════════════════════
+async function loadZombies(showAll) {
+  if (!zombieContract) return;
+  const grid  = document.getElementById('zombie-grid');
+  const empty = document.getElementById('army-empty');
+  grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--muted2)"><span class="spinner"></span> Loading…</div>`;
+
+  try {
+    let ids = showAll ? await getAllZombieIds() : await zombieContract.methods.getZombiesByOwner(account).call();
+    myZombies = [];
+    graveyardZombies = [];
+
+    // Get all my zombies ever (for graveyard)
+    const allIds = await getAllZombieIds();
+    for (const id of allIds) {
+      const z     = await zombieContract.methods.zombies(id).call();
+      const owner = await zombieContract.methods.zombieToOwner(id).call();
+      const zObj  = { id: parseInt(id), name: z.name, dna: z.dna, level: parseInt(z.level), winCount: parseInt(z.winCount), lossCount: parseInt(z.lossCount), readyTime: parseInt(z.readyTime), owner };
+      if (owner.toLowerCase() !== account.toLowerCase()) {
+        // Check if this was ever related — we track by checking if the id was in a previous session
+        // Simple approach: show all non-owned zombies the user might have transferred
+      }
+    }
+
+    for (const id of ids) {
+      const z     = await zombieContract.methods.zombies(id).call();
+      const owner = await zombieContract.methods.zombieToOwner(id).call();
+      myZombies.push({ id: parseInt(id), name: z.name, dna: z.dna, level: parseInt(z.level), winCount: parseInt(z.winCount), lossCount: parseInt(z.lossCount), readyTime: parseInt(z.readyTime), owner });
+    }
+
+    renderZombieGrid(myZombies, 'zombie-grid', true);
+    empty.style.display = myZombies.length === 0 ? 'block' : 'none';
+
+    // Update hero stats
+    const totalWins = myZombies.reduce((a,z) => a + z.winCount, 0);
+    const maxLvl    = myZombies.reduce((a,z) => Math.max(a, z.level), 0);
+    document.getElementById('stat-total').textContent = myZombies.length;
+    document.getElementById('stat-wins').textContent  = totalWins;
+    document.getElementById('stat-lvl').textContent   = maxLvl;
+
+    populateSelects();
+  } catch(e) { showAlert('army','Error: '+e.message,'error'); grid.innerHTML = ''; }
+}
+
+async function getAllZombieIds() {
+  const ids = [];
+  let i = 0;
+  while (true) {
+    try { await zombieContract.methods.zombies(i).call(); ids.push(i); i++; if (i > 500) break; }
+    catch(e) { break; }
+  }
+  return ids;
+}
+
+function renderZombieGrid(list, gridId, showActions) {
+  const grid = document.getElementById(gridId);
+  grid.innerHTML = '';
+  if (!list || list.length === 0) return;
+  list.forEach(z => {
+    const isReady = Date.now()/1000 > z.readyTime;
+    const isMine  = z.owner && z.owner.toLowerCase() === account.toLowerCase();
+    const wr      = calcWinRate(z.winCount, z.lossCount);
+    const wrColor = wr === null ? 'var(--muted2)' : wr >= 70 ? 'var(--green)' : wr >= 50 ? 'var(--amber)' : 'var(--red)';
+    const div = document.createElement('div');
+    div.className = 'zombie-card';
+    div.onclick = (e) => { if (!e.target.closest('.btn')) openZombieModal(z); };
+    div.innerHTML = `
+      <span class="zombie-id">#${z.id}</span>
+      ${isMine ? '<span class="zombie-badge">Mine</span>' : ''}
+      <div style="filter:drop-shadow(0 0 8px ${wrColor}22)">${zombieSVG(z.dna, 110)}</div>
+      <h3>${z.name}</h3>
+      <div class="level">⭐ Level ${z.level} ${isReady ? '✅' : '⏳'}</div>
+      <div class="winrate">${wr !== null ? wr+'% WR' : '—'}</div>
+      <div class="stats"><span>🏆 ${z.winCount}</span><span>💀 ${z.lossCount}</span></div>
+      <div class="dna">${z.dna}</div>
+      ${showActions && isMine ? `
+      <div class="zombie-actions">
+        <button class="btn btn-amber" onclick="levelUpZombie(${z.id})">⬆ LvUp</button>
+        <button class="btn btn-red" onclick="selectForBattle(${z.id})">⚔️</button>
+        <button class="btn btn-ghost" onclick="quickList(${z.id})">🏷️</button>
+        <button class="btn btn-cyan" onclick="selectZombieForAsteroid(${z.id})">🚀 Play</button>
+      </div>` : ''}`;
+    grid.appendChild(div);
+  });
+}
+
+function filterZombies() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const f = myZombies.filter(z => z.name.toLowerCase().includes(q) || String(z.dna).includes(q) || String(z.level).includes(q));
+  renderZombieGrid(f, 'zombie-grid', true);
+}
+
+// ═══════════════════════════════════════════════════
+// CREATE
+// ═══════════════════════════════════════════════════
+async function createZombie() {
+  const name = document.getElementById('create-name').value.trim();
+  if (!name) { showAlert('create','Enter a name.','error'); return; }
+  try {
+    showAlert('create','<span class="spinner"></span> Creating '+name+'…','info');
+    await zombieContract.methods.createRandomZombie(name).send({ from: account });
+    showAlert('create',name+' created! 🎉','success');
+    document.getElementById('create-name').value = '';
+    document.getElementById('create-preview').style.display = 'none';
+    await loadZombies(); switchTab('army');
+  } catch(e) {
+    showAlert('create', e.message.includes('revert') ? 'You already own a zombie!' : e.message, 'error');
+  }
+}
+
+document.getElementById('create-name').addEventListener('input', function() {
+  const name = this.value.trim();
+  const preview = document.getElementById('create-preview');
+  if (name.length >= 2) {
+    const fakeDna = BigInt('0x'+[...name].map(c=>c.charCodeAt(0).toString(16).padStart(2,'0')).join('')).toString().slice(0,16).padStart(16,'1');
+    document.getElementById('preview-svg').innerHTML = zombieSVG(fakeDna, 130);
+    document.getElementById('preview-info').textContent = 'Preview — actual DNA generated on-chain';
+    preview.style.display = 'block';
+  } else { preview.style.display = 'none'; }
+});
+
+// ═══════════════════════════════════════════════════
+// LEVEL UP
+// ═══════════════════════════════════════════════════
+async function levelUpZombie(id) {
+  try {
+    showAlert('army','<span class="spinner"></span> Levelling up #'+id+'…','info');
+    await zombieContract.methods.levelUp(id).send({ from: account, value: web3.utils.toWei('0.001','ether') });
+    showAlert('army','Zombie #'+id+' levelled up! 🎉','success');
+    loadZombies();
+  } catch(e) { showAlert('army', e.message, 'error'); }
+}
+// ═══════════════════════════════════════════════════
+// BATTLE
+// ═══════════════════════════════════════════════════
+function populateSelects() {
+  const mine = myZombies.filter(z => z.owner && z.owner.toLowerCase() === account.toLowerCase());
+  ['attacker-select','kitty-zombie-select','market-zombie-select'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">-- choose --</option>';
+    mine.forEach(z => {
+      const o = document.createElement('option');
+      o.value = z.id; o.textContent = `#${z.id} — ${z.name} (Lv.${z.level})`;
+      sel.appendChild(o);
+    });
+    if (cur) sel.value = cur;
+  });
+}
+
+function selectForBattle(id) {
+  switchTab('battle');
+  document.getElementById('attacker-select').value = id;
+  updateBattlePreview();
+}
+
+async function updateBattlePreview() {
+  const id  = document.getElementById('attacker-select').value;
+  const div = document.getElementById('attacker-preview');
+  if (!id) { div.innerHTML = ''; return; }
+  const z = myZombies.find(z => z.id === parseInt(id));
+  if (z) div.innerHTML = zombieSVG(z.dna, 90) + `<div style="font-size:11px;color:var(--muted2);margin-top:4px">${z.name} · Lv.${z.level}</div>`;
+}
+
+async function updateTargetPreview() {
+  const id  = document.getElementById('target-id').value;
+  const div = document.getElementById('target-preview');
+  if (id === '') { div.innerHTML = ''; return; }
+  try {
+    const z = await zombieContract.methods.zombies(id).call();
+    div.innerHTML = zombieSVG(z.dna, 90) + `<div style="font-size:11px;color:var(--muted2);margin-top:4px">${z.name} · Lv.${z.level}</div>`;
+  } catch(e) { div.innerHTML = '<div style="color:var(--red);font-size:12px">Not found</div>'; }
+}
+
+async function attackZombie() {
+  const attackerId = document.getElementById('attacker-select').value;
+  const targetId   = document.getElementById('target-id').value;
+  if (!attackerId) { showAlert('battle','Select your zombie.','error'); return; }
+  if (targetId === '') { showAlert('battle','Enter enemy ID.','error'); return; }
+  if (attackerId === targetId) { showAlert('battle','Cannot attack yourself!','error'); return; }
+
+  const resultDiv = document.getElementById('battle-result');
+  resultDiv.className = ''; resultDiv.style.display = 'none';
+
+  // Animate attacker
+  const attackerBox = document.getElementById('attacker-box');
+  attackerBox.classList.add('attack-slash');
+  setTimeout(() => attackerBox.classList.remove('attack-slash'), 500);
+
+  showAlert('battle','<span class="spinner"></span> Battle in progress…','info');
+
+  try {
+    const prevZ = await zombieContract.methods.zombies(attackerId).call();
+    await zombieContract.methods.attack(attackerId, targetId).send({ from: account });
+    hideAlert('battle');
+
+    const newZ = await zombieContract.methods.zombies(attackerId).call();
+    const won  = parseInt(newZ.winCount) > parseInt(prevZ.winCount);
+
+    // Animate result
+    const targetBox = document.getElementById('target-box');
+    if (won) {
+      attackerBox.classList.add('victory-bounce');
+      targetBox.classList.add('defeat-fall');
+      attackerBox.classList.add('glow-pulse');
+      setTimeout(() => { attackerBox.classList.remove('victory-bounce','glow-pulse'); targetBox.classList.remove('defeat-fall'); }, 2000);
+    } else {
+      attackerBox.classList.add('battle-shake','battle-flash');
+      setTimeout(() => attackerBox.classList.remove('battle-shake','battle-flash'), 1000);
+    }
+
+    resultDiv.className = 'battle-result-box show ' + (won ? 'win' : 'loss');
+    document.getElementById('battle-emoji').textContent      = won ? '🏆' : '💀';
+    document.getElementById('battle-outcome-text').className = 'result-text ' + (won ? 'win' : 'loss');
+    document.getElementById('battle-outcome-text').textContent = won ? 'VICTORY!' : 'DEFEAT';
+    document.getElementById('battle-detail').textContent = won
+      ? 'Your zombie gained a level and spawned a new zombie!'
+      : 'Your zombie lost and is on cooldown.';
+
+    showAlert('battle', won ? '🏆 Victory! New zombie spawned!' : '💀 Defeated. Try again after cooldown.', won ? 'success' : 'error');
+    await loadZombies();
+  } catch(e) {
+    const msg = e.message.includes('cooldown') || e.message.includes('ready') ? 'Zombie is on cooldown! Wait before attacking.' : e.message.includes('onlyOwnerOf') ? "You don't own that zombie." : e.message;
+    showAlert('battle', msg, 'error');
+    attackerBox.classList.add('battle-shake');
+    setTimeout(() => attackerBox.classList.remove('battle-shake'), 500);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// KITTY
+// ═══════════════════════════════════════════════════
+async function loadKitties() {
+  if (!kittyContract) return;
+  const div = document.getElementById('kitty-list');
+  div.innerHTML = '';
+  try {
+    const total = await kittyContract.methods.totalSupply().call();
+    for (let i = 0; i < Math.min(parseInt(total), 10); i++) {
+      const k    = await kittyContract.methods.kitties(i).call();
+      const card = document.createElement('div');
+      card.className = 'kitty-card';
+      card.id = 'kitty-card-'+i;
+      card.innerHTML = kittyAvatarSVG(k.genes, 48) + `<div><div style="font-size:13px;font-weight:600">Kitty #${i}</div><div style="font-size:10px;color:var(--muted2)">Genes: ${String(k.genes).slice(0,10)}…</div></div>`;
+      card.onclick = () => {
+        document.querySelectorAll('.kitty-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        document.getElementById('kitty-id-manual').value = i;
+      };
+      div.appendChild(card);
+    }
+  } catch(e) { div.innerHTML = '<span style="color:var(--muted2);font-size:13px">Kitty contract not loaded.</span>'; }
+}
+
+async function feedOnKitty() {
+  const zombieId = document.getElementById('kitty-zombie-select').value;
+  const kittyId  = document.getElementById('kitty-id-manual').value;
+  if (!zombieId) { showAlert('kitty','Select your zombie.','error'); return; }
+  if (kittyId === '') { showAlert('kitty','Select a kitty.','error'); return; }
+  try {
+    showAlert('kitty','<span class="spinner"></span> Feeding…','info');
+    await zombieContract.methods.feedOnKitty(zombieId, kittyId).send({ from: account });
+    showAlert('kitty','Fed! New kitty zombie spawned 🐱','success');
+    loadZombies();
+  } catch(e) {
+    showAlert('kitty', e.message.includes('cooldown') || e.message.includes('ready') ? 'Zombie on cooldown!' : e.message, 'error');
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// MARKETPLACE
+// ═══════════════════════════════════════════════════
+async function loadMarket() {
+  if (!marketContract) return;
+  const grid  = document.getElementById('market-grid');
+  const empty = document.getElementById('market-empty');
+  grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--muted2)"><span class="spinner"></span> Loading marketplace…</div>`;
+  try {
+    const listingIds = await marketContract.methods.getActiveListings().call();
+    grid.innerHTML = '';
+    if (listingIds.length === 0) { empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    for (const lid of listingIds) {
+      const listing = await marketContract.methods.listings(lid).call();
+      const zombie  = await marketContract.methods.zombies(listing.zombieId).call();
+      const isMine  = listing.seller.toLowerCase() === account.toLowerCase();
+      const card    = document.createElement('div');
+      card.className = 'market-card';
+      const zombieObj = { id: parseInt(listing.zombieId), name: zombie.name, dna: zombie.dna, level: parseInt(zombie.level), winCount: parseInt(zombie.winCount), lossCount: parseInt(zombie.lossCount), readyTime: 0, owner: listing.seller };
+      card.onclick = (e) => { if (!e.target.closest('.btn')) openZombieModal(zombieObj); };
+      const wr = calcWinRate(parseInt(zombie.winCount), parseInt(zombie.lossCount));
+      card.innerHTML = `
+        <span class="listed-badge">FOR SALE</span>
+        ${isMine ? '<span class="zombie-badge">Mine</span>' : ''}
+        ${zombieSVG(zombie.dna, 100)}
+        <h3 style="margin:8px 0 4px">${zombie.name}</h3>
+        <div style="font-size:11px;color:var(--amber);margin-bottom:4px">Lv.${zombie.level} · ${wr !== null ? wr+'% WR' : 'No battles'}</div>
+        <div class="market-price">${web3.utils.fromWei(listing.price,'ether')} <span>ETH</span></div>
+        <div style="font-size:10px;color:var(--muted2);margin-bottom:10px">Seller: ${listing.seller.slice(0,6)}…${listing.seller.slice(-4)}</div>
+        ${!isMine ? `<button class="btn btn-amber" style="width:100%" onclick="buyZombie(${listing.zombieId},'${listing.price}')">💰 Buy Now</button>` : '<button class="btn btn-ghost" style="width:100%;font-size:11px" disabled>Your listing</button>'}`;
+      grid.appendChild(card);
+    }
+  } catch(e) { showAlert('market', e.message, 'error'); grid.innerHTML = ''; }
+}
+
+async function listZombie() {
+  const zombieId = document.getElementById('market-zombie-select').value;
+  const priceEth = document.getElementById('market-price').value;
+  if (!zombieId) { showAlert('market','Select your zombie.','error'); return; }
+  if (!priceEth || parseFloat(priceEth) <= 0) { showAlert('market','Enter a valid price.','error'); return; }
+  try {
+    const priceWei = web3.utils.toWei(priceEth,'ether');
+    showAlert('market','<span class="spinner"></span> Listing zombie…','info');
+    await marketContract.methods.listZombie(zombieId, priceWei).send({ from: account });
+    showAlert('market','Zombie listed for '+priceEth+' ETH! 🏷️','success');
+    document.getElementById('market-price').value = '';
+    loadMarket();
+  } catch(e) {
+    showAlert('market', e.message.includes('Already listed') ? 'This zombie is already listed!' : e.message, 'error');
+  }
+}
+
+async function buyZombie(zombieId, price) {
+  try {
+    showAlert('market','<span class="spinner"></span> Buying zombie #'+zombieId+'…','info');
+    await marketContract.methods.buyZombie(zombieId).send({ from: account, value: price });
+    showAlert('market','Zombie #'+zombieId+' purchased! 🎉','success');
+    await loadZombies();
+    loadMarket();
+  } catch(e) { showAlert('market', e.message, 'error'); }
+}
+
+async function delistZombie() {
+  const id = document.getElementById('delist-id').value;
+  if (!id) { showAlert('market','Enter zombie ID.','error'); return; }
+  try {
+    showAlert('market','<span class="spinner"></span> Delisting…','info');
+    await marketContract.methods.delistZombie(id).send({ from: account });
+    showAlert('market','Zombie delisted.','success');
+    loadMarket();
+  } catch(e) { showAlert('market', e.message, 'error'); }
+}
+
+function quickList(id) {
+  switchTab('market');
+  document.getElementById('market-zombie-select').value = id;
+}
+
+// ═══════════════════════════════════════════════════
+// TRANSFER
+// ═══════════════════════════════════════════════════
+async function transferZombie() {
+  const id   = document.getElementById('transfer-zombie-id').value;
+  const addr = document.getElementById('transfer-to').value.trim();
+  if (!id) { showAlert('transfer','Enter zombie ID.','error'); return; }
+  if (!web3.utils.isAddress(addr)) { showAlert('transfer','Invalid address.','error'); return; }
+  try {
+    showAlert('transfer','<span class="spinner"></span> Transferring…','info');
+    await zombieContract.methods.transferFrom(account, addr, id).send({ from: account });
+    showAlert('transfer','Zombie #'+id+' transferred! ✅','success');
+    loadZombies();
+  } catch(e) { showAlert('transfer', e.message, 'error'); }
+}
+
+async function approveZombie() {
+  const id   = document.getElementById('approve-zombie-id').value;
+  const addr = document.getElementById('approve-address').value.trim();
+  if (!id) { showAlert('transfer','Enter zombie ID.','error'); return; }
+  if (!web3.utils.isAddress(addr)) { showAlert('transfer','Invalid address.','error'); return; }
+  try {
+    showAlert('transfer','<span class="spinner"></span> Approving…','info');
+    await zombieContract.methods.approve(addr, id).send({ from: account });
+    showAlert('transfer','Approved! ✅','success');
+  } catch(e) { showAlert('transfer', e.message, 'error'); }
+}
+
+async function lookupOwner() {
+  const id = document.getElementById('owner-zombie-id').value;
+  if (id === '') { showAlert('transfer','Enter zombie ID.','error'); return; }
+  try {
+    const owner = await zombieContract.methods.ownerOf(id).call();
+    document.getElementById('owner-address').textContent = owner;
+    document.getElementById('owner-result').style.display = 'block';
+  } catch(e) { showAlert('transfer','Zombie not found.','error'); }
+}
+
+// ═══════════════════════════════════════════════════
+// LEADERBOARD
+// ═══════════════════════════════════════════════════
+async function loadLeaderboard() {
+  showAlert('leaderboard','<span class="spinner"></span> Loading leaderboard…','info');
+  try {
+    const ids = await getAllZombieIds();
+    const players = {};
+    const zombieList = [];
+
+    for (const id of ids) {
+      const z     = await zombieContract.methods.zombies(id).call();
+      const owner = await zombieContract.methods.zombieToOwner(id).call();
+      const wins  = parseInt(z.winCount);
+      const losses= parseInt(z.lossCount);
+      const level = parseInt(z.level);
+
+      if (!players[owner]) players[owner] = { address: owner, zombies: 0, wins: 0, losses: 0, maxLevel: 0 };
+      players[owner].zombies++;
+      players[owner].wins   += wins;
+      players[owner].losses += losses;
+      players[owner].maxLevel = Math.max(players[owner].maxLevel, level);
+
+      zombieList.push({ id, name: z.name, dna: z.dna, owner, wins, losses, level });
+    }
+
+    // Render players table
+    const playerList = Object.values(players).sort((a,b) => b.wins - a.wins || b.zombies - a.zombies);
+    const ptbody = document.getElementById('players-tbody');
+    ptbody.innerHTML = '';
+    playerList.forEach((p, i) => {
+      const wr  = calcWinRate(p.wins, p.losses);
+      const isMe = p.address.toLowerCase() === account.toLowerCase();
+      const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-n';
+      const tr = document.createElement('tr');
+      if (isMe) tr.className = 'me';
+      tr.innerHTML = `
+        <td><span class="rank-badge ${rankClass}">${i+1}</span></td>
+        <td><span style="font-family:monospace;font-size:12px">${p.address.slice(0,8)}…${p.address.slice(-4)}</span>${isMe ? '<span class="you-badge">YOU</span>' : ''}</td>
+        <td>${p.zombies}</td>
+        <td style="color:var(--green);font-weight:700">${p.wins}</td>
+        <td style="color:var(--red)">${p.losses}</td>
+        <td>
+          ${wr !== null ? `<div>${wr}%</div><div class="winrate-bar"><div class="winrate-fill" style="width:${wr}%"></div></div>` : '—'}
+        </td>
+        <td><span style="color:var(--amber);font-weight:700">Lv.${p.maxLevel}</span></td>`;
+      ptbody.appendChild(tr);
+    });
+
+    // Render zombies table
+    const sortedZombies = zombieList.sort((a,b) => b.wins - a.wins || b.level - a.level);
+    const ztbody = document.getElementById('zombies-tbody');
+    ztbody.innerHTML = '';
+    sortedZombies.forEach((z, i) => {
+      const wr  = calcWinRate(z.wins, z.losses);
+      const isMe = z.owner.toLowerCase() === account.toLowerCase();
+      const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-n';
+      const tr = document.createElement('tr');
+      if (isMe) tr.className = 'me';
+      tr.innerHTML = `
+        <td><span class="rank-badge ${rankClass}">${i+1}</span></td>
+        <td style="display:flex;align-items:center;gap:8px">${zombieSVG(z.dna,36)}<span style="font-weight:600">${z.name}</span>${isMe?'<span class="you-badge">MINE</span>':''}</td>
+        <td style="font-family:monospace;font-size:11px">${z.owner.slice(0,6)}…${z.owner.slice(-4)}</td>
+        <td style="color:var(--amber);font-weight:700">Lv.${z.level}</td>
+        <td style="color:var(--green);font-weight:700">${z.wins}</td>
+        <td>${wr !== null ? wr+'%' : '—'}</td>`;
+      ztbody.appendChild(tr);
+    });
+
+    hideAlert('leaderboard');
+  } catch(e) { showAlert('leaderboard', e.message, 'error'); }
+}
+
+function showLbTab(tab) {
+  document.getElementById('lb-players').style.display = tab === 'players' ? 'block' : 'none';
+  document.getElementById('lb-zombies').style.display = tab === 'zombies' ? 'block' : 'none';
+  document.getElementById('lb-players-btn').className = 'btn ' + (tab === 'players' ? 'btn-purple' : 'btn-ghost');
+  document.getElementById('lb-zombies-btn').className = 'btn ' + (tab === 'zombies' ? 'btn-purple' : 'btn-ghost');
+}
+
+// ═══════════════════════════════════════════════════
+// GRAVEYARD
+// ═══════════════════════════════════════════════════
+async function loadGraveyard() {
+  if (!zombieContract) return;
+  const grid  = document.getElementById('graveyard-grid');
+  const empty = document.getElementById('graveyard-empty');
+  grid.innerHTML = `<div style="text-align:center;padding:20px;color:var(--muted2)"><span class="spinner"></span> Searching graveyard…</div>`;
+  try {
+    // Get transfer events to find zombies that left this account
+    const allIds = await getAllZombieIds();
+    const departed = [];
+    for (const id of allIds) {
+      const owner = await zombieContract.methods.zombieToOwner(id).call();
+      // Check if this zombie was ever ours via events
+      try {
+        const events = await zombieContract.getPastEvents('Transfer', {
+          filter: { _from: account },
+          fromBlock: 0, toBlock: 'latest'
+        });
+        for (const evt of events) {
+          if (parseInt(evt.returnValues._tokenId) === parseInt(id)) {
+            const z = await zombieContract.methods.zombies(id).call();
+            departed.push({ id: parseInt(id), name: z.name, dna: z.dna, level: parseInt(z.level), winCount: parseInt(z.winCount), lossCount: parseInt(z.lossCount), newOwner: owner });
+          }
+        }
+      } catch(e) { console.warn('Events not supported:', e); }
+    }
+
+    grid.innerHTML = '';
+    if (departed.length === 0) { empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+
+    departed.forEach(z => {
+      const div = document.createElement('div');
+      div.className = 'graveyard-card';
+      div.onclick = () => openZombieModal(z);
+      div.innerHTML = `
+        ${zombieSVG(z.dna, 90)}
+        <h3>${z.name}</h3>
+        <div style="font-size:11px;color:#4a5568;margin-top:4px">Was Lv.${z.level}</div>
+        <div style="font-size:10px;color:#4a5568;margin-top:2px">Transferred to<br>${z.newOwner.slice(0,8)}…</div>`;
+      grid.appendChild(div);
+    });
+  } catch(e) {
+    // Fallback: show zombies not owned by current account that match DNA patterns
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// EXPLORE
+// ═══════════════════════════════════════════════════
+async function loadAllZombies() {
+  const grid  = document.getElementById('explore-grid');
+  const empty = document.getElementById('explore-empty');
+  grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--muted2)"><span class="spinner"></span> Scanning chain…</div>`;
+  try {
+    const ids = await getAllZombieIds();
+    allZombies = [];
+    for (const id of ids) {
+      const z     = await zombieContract.methods.zombies(id).call();
+      const owner = await zombieContract.methods.zombieToOwner(id).call();
+      allZombies.push({ id: parseInt(id), name: z.name, dna: z.dna, level: parseInt(z.level), winCount: parseInt(z.winCount), lossCount: parseInt(z.lossCount), readyTime: parseInt(z.readyTime), owner });
+    }
+    renderZombieGrid(allZombies, 'explore-grid', false);
+    empty.style.display = allZombies.length === 0 ? 'block' : 'none';
+  } catch(e) { showAlert('explore', e.message, 'error'); grid.innerHTML = ''; }
+}
+
+function filterExplore() {
+  const q = document.getElementById('explore-search').value.toLowerCase();
+  renderZombieGrid(allZombies.filter(z => z.name.toLowerCase().includes(q) || String(z.dna).includes(q)), 'explore-grid', false);
+}
+
+// ═══════════════════════════════════════════════════
+// TABS + ALERTS + UTILS
+// ═══════════════════════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  const idx = TABS.indexOf(name);
+  if (idx >= 0) document.querySelectorAll('.nav-link')[idx].classList.add('active');
+  if (name === 'battle')      populateSelects();
+  if (name === 'kitty')       { populateSelects(); if (kittyContract) loadKitties(); }
+  if (name === 'market')      { populateSelects(); loadMarket(); }
+  if (name === 'leaderboard') loadLeaderboard();
+  if (name === 'graveyard')   loadGraveyard();
+  if (name === 'explore')     loadAllZombies();
+  if (name === 'zmwallet')    { refreshZMB(); checkStarterClaim(); renderZMBHistory(); }
+  if (name === 'asteroid') {}
+}
+
+function showAlert(section, msg, type) {
+  const id = section === 'global' ? 'alert-global' : 'alert-'+section;
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = 'alert alert-'+type+' show';
+  el.innerHTML = msg;
+}
+function hideAlert(section) {
+  const id = section === 'global' ? 'alert-global' : 'alert-'+section;
+  const el = document.getElementById(id);
+  if (el) { el.className = 'alert'; el.innerHTML = ''; }
+}
+
+// Breed modal (future use)
+function closeBreedModal() { document.getElementById('breed-modal').classList.remove('show'); }
+function confirmBreedName() { closeBreedModal(); }
+
+// ═══════════════════════════════════════════════════
+// ZOMBIE DETAIL MODAL
+// ═══════════════════════════════════════════════════
+function openZombieModal(z) {
+  const modal   = document.getElementById('zombie-detail-modal');
+  const isMine  = z.owner && z.owner.toLowerCase() === account.toLowerCase();
+  const isReady = Date.now()/1000 > z.readyTime;
+  const wins    = parseInt(z.winCount  || z.wins   || 0);
+  const losses  = parseInt(z.lossCount || z.losses || 0);
+  const level   = parseInt(z.level || 1);
+  const dna     = String(z.dna).padStart(16,'0');
+  const isKitty = dna.slice(14,16) === '99';
+  const wr      = calcWinRate(wins, losses);
+  const wrColor = wr === null ? '#4a6080' : wr >= 70 ? '#00ff88' : wr >= 50 ? '#fbbf24' : '#ff4444';
+
+  // Avatar
+  document.getElementById('zm-avatar').innerHTML =
+    `<div style="filter:drop-shadow(0 0 20px ${wrColor}44)">${zombieSVG(z.dna, 160)}</div>`;
+
+  // Kitty badge
+  document.getElementById('zm-kitty-badge').style.display = isKitty ? 'inline-flex' : 'none';
+
+  // Name + level
+  document.getElementById('zm-name').textContent  = z.name;
+  document.getElementById('zm-level').textContent = `⭐ Level ${level}`;
+  document.getElementById('zm-status').innerHTML  =
+    `<span style="color:${isReady?'#00ff88':'#fbbf24'}">${isReady ? '✅ Ready to battle' : '⏳ On cooldown'}</span>
+     ${isMine ? ' · <span style="color:#8b5cf6;font-weight:700">Yours</span>' : ''}
+     · <span style="color:#4a6080">ID #${z.id}</span>`;
+
+  // Stats
+  document.getElementById('zm-wins').textContent   = wins;
+  document.getElementById('zm-losses').textContent = losses;
+  document.getElementById('zm-wr').textContent      = wr !== null ? wr+'%' : '—';
+
+  // Win rate bar
+  const bar = document.getElementById('zm-wr-bar');
+  bar.style.width      = (wr || 0)+'%';
+  bar.style.background = wrColor;
+
+  // DNA breakdown
+  document.getElementById('zm-dna').textContent = dna;
+  const segLabels = ['Head','Eyes','Mouth','Skin-H','Skin-S','Skin-L','Shirt','Special'];
+  const segColors = ['#7c3aed','#0284c7','#059669','#d97706','#dc2626','#db2777','#6d28d9','#065f46'];
+  const segs = document.getElementById('zm-dna-segs');
+  segs.innerHTML = '';
+  for (let i = 0; i < 8; i++) {
+    const val  = dna.slice(i*2, i*2+2);
+    const span = document.createElement('span');
+    span.className = 'zm-dna-seg';
+    span.style.background = segColors[i]+'22';
+    span.style.border     = `1px solid ${segColors[i]}44`;
+    span.style.color      = segColors[i];
+    span.title = segLabels[i];
+    span.textContent = `${segLabels[i]}: ${val}`;
+    segs.appendChild(span);
+  }
+
+  // Owner
+  document.getElementById('zm-owner').textContent = z.owner || '—';
+
+  // Actions
+  const actDiv = document.getElementById('zm-actions');
+  actDiv.innerHTML = '';
+  if (isMine) {
+    actDiv.innerHTML += `<button class="btn btn-red" onclick="closeZombieModal();selectForBattle(${z.id})">⚔️ Battle</button>`;
+    actDiv.innerHTML += `<button class="btn btn-amber" onclick="closeZombieModal();levelUpZombie(${z.id})">⬆ Level Up</button>`;
+    actDiv.innerHTML += `<button class="btn btn-purple" onclick="closeZombieModal();quickList(${z.id})">🏷️ Sell</button>`;
+    actDiv.innerHTML += `<button class="btn btn-ghost" onclick="closeZombieModal();switchTab('transfer')">↔️ Transfer</button>`;
+    actDiv.innerHTML += `<button class="btn btn-green" onclick="closeZombieModal();switchTab('asteroid');selectZombieForAsteroid(${z.id})">🪨 Asteroidz</button>`;
+  }
+
+  modal.classList.remove('closing');
+  modal.style.display = 'flex';
+  // force reflow so CSS transition fires from initial state
+  void modal.offsetHeight;
+  requestAnimationFrame(() => {
+    modal.classList.add('show');
+  });
+  document.body.style.overflow = 'hidden';
+}
+
+function closeZombieModal(e) {
+  if (e && e.target !== document.getElementById('zombie-detail-modal')) return;
+  const overlay = document.getElementById('zombie-detail-modal');
+  overlay.classList.add('closing');
+  overlay.classList.remove('show');
+  setTimeout(() => {
+    overlay.style.display = 'none';
+    overlay.classList.remove('closing');
+    overlay.style.display = '';
+    document.body.style.overflow = '';
+  }, 280);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeZombieModal();
+});
+
+
+// ═══════════════════════════════════════════════════
+// ZOMBIECOIN FUNCTIONS
+// ═══════════════════════════════════════════════════
+
+async function refreshZMB() {
+  if (!zombieContract || !account) return;
+  try {
+    zmbBalance = parseInt(await zombieContract.methods.getZombieCoins(account).call());
+    const totalSupply = parseInt(await zombieContract.methods.totalSupply().call());
+    document.getElementById('zmb-amount').textContent         = zmbBalance.toLocaleString();
+    document.getElementById('zmb-wallet-balance').textContent = zmbBalance.toLocaleString();
+    document.getElementById('zmb-total-supply').textContent   = totalSupply.toLocaleString();
+    document.getElementById('zmb-badge').style.display        = 'flex';
+    document.getElementById('bet-zmb-display').textContent    = zmbBalance.toLocaleString();
+  } catch(e) { console.warn('ZMB refresh:', e); }
+}
+
+async function checkStarterClaim() {
+  if (!zombieContract || !account) return;
+  try {
+    const claimed = await zombieContract.methods.hasClaimedStarter(account).call();
+    const btn     = document.getElementById('claim-starter-btn');
+    const status  = document.getElementById('zmb-starter-status');
+    if (claimed) {
+      if (btn) { btn.disabled = true; btn.textContent = '✓ Already Claimed'; }
+      if (status) status.textContent = '✓ Starter bonus claimed';
+    } else {
+      if (status) status.textContent = '🎁 500 ZMB starter available!';
+    }
+  } catch(e) { console.warn('Starter check:', e); }
+}
+
+async function claimStarter() {
+  try {
+    showAlert('zmwallet','<span class="spinner"></span> Claiming 500 ZMB…','info');
+    await zombieContract.methods.claimStarterCoins().send({ from: account });
+    showAlert('zmwallet','🎉 500 ZMB claimed!','success');
+    addZMBHistory('🎁 Starter Bonus', +500);
+    await refreshZMB();
+    await checkStarterClaim();
+  } catch(e) {
+    showAlert('zmwallet', e.message.includes('Already claimed') ? 'Already claimed your starter bonus!' : e.message, 'error');
+  }
+}
+
+async function buyZMB(amount) {
+  amount = amount || 1;
+  try {
+    const ethCost = web3.utils.toWei((0.01 * amount).toFixed(4), 'ether');
+    showAlert('zmwallet','<span class="spinner"></span> Buying '+(amount*100)+' ZMB…','info');
+    await zombieContract.methods.buyCoins().send({ from: account, value: ethCost });
+    showAlert('zmwallet','💰 '+(amount*100)+' ZMB purchased!','success');
+    addZMBHistory('💰 Purchased', +(amount*100));
+    await refreshZMB();
+  } catch(e) { showAlert('zmwallet', e.message, 'error'); }
+}
+
+function setBet(amount) {
+  document.getElementById('bet-amount').value = amount;
+}
+
+function setBetAll() {
+  document.getElementById('bet-amount').value = zmbBalance;
+}
+
+function addZMBHistory(label, amount) {
+  zmbHistory.unshift({ label, amount, time: new Date().toLocaleTimeString() });
+  if (zmbHistory.length > 20) zmbHistory.pop();
+  renderZMBHistory();
+}
+
+function renderZMBHistory() {
+  const div = document.getElementById('zmb-history');
+  if (!div) return;
+  if (zmbHistory.length === 0) {
+    div.innerHTML = '<div class="empty" style="padding:20px"><span class="empty-icon" style="font-size:24px">🪙</span>Battle to earn ZMB!</div>';
+    return;
+  }
+  div.innerHTML = zmbHistory.map(h => `
+    <div class="zmb-history-item">
+      <span>${h.label}</span>
+      <span style="display:flex;align-items:center;gap:8px">
+        <span class="${h.amount > 0 ? 'zmb-pos' : 'zmb-neg'}">${h.amount > 0 ? '+' : ''}${h.amount} ZMB</span>
+        <span style="color:var(--muted);font-size:11px">${h.time}</span>
+      </span>
+    </div>`).join('');
+}
+
+// Auto-buy modal
+function showAutoBuy() {
+  document.getElementById('autobuy-balance').textContent = 'Your balance: ' + zmbBalance + ' ZMB';
+  document.getElementById('autobuy-modal').classList.add('show');
+}
+
+function closeAutoBuy() {
+  document.getElementById('autobuy-modal').classList.remove('show');
+  pendingBattleArgs = null;
+}
+
+async function autoBuyAndBattle() {
+  closeAutoBuy();
+  try {
+    const ethCost = web3.utils.toWei('0.01','ether');
+    showAlert('battle','<span class="spinner"></span> Buying 100 ZMB…','info');
+    await zombieContract.methods.buyCoins().send({ from: account, value: ethCost });
+    addZMBHistory('💰 Auto-purchased', +100);
+    await refreshZMB();
+    // Retry battle
+    await attackZombie();
+  } catch(e) { showAlert('battle', e.message, 'error'); }
+}
+
+
+
+
+
+// Override attackZombie to use attackWithBet
+const _originalAttack = attackZombie;
+attackZombie = async function() {
+  const attackerId = document.getElementById('attacker-select').value;
+  const targetId   = document.getElementById('target-id').value;
+  const betAmount  = parseInt(document.getElementById('bet-amount').value || 100);
+
+  if (!attackerId) { showAlert('battle','Select your zombie.','error'); return; }
+  if (targetId === '') { showAlert('battle','Enter enemy ID.','error'); return; }
+  if (attackerId === targetId) { showAlert('battle','Cannot attack yourself!','error'); return; }
+  if (betAmount < 100) { showAlert('battle','Minimum bet is 100 ZMB.','error'); return; }
+
+  // Check ZMB balance
+  await refreshZMB();
+  if (zmbBalance < betAmount) {
+    showAutoBuy();
+    return;
+  }
+
+  const resultDiv   = document.getElementById('battle-result');
+  resultDiv.className = ''; resultDiv.style.display = 'none';
+
+  const attackerBox = document.getElementById('attacker-box');
+  attackerBox.classList.add('attack-slash');
+  setTimeout(() => attackerBox.classList.remove('attack-slash'), 500);
+
+  showAlert('battle','<span class="spinner"></span> Battle in progress — betting '+betAmount+' ZMB…','info');
+
+  try {
+    const prevBal = zmbBalance;
+    await zombieContract.methods.attackWithBet(attackerId, targetId, betAmount).send({ from: account });
+    hideAlert('battle');
+
+    await refreshZMB();
+    const newBal  = zmbBalance;
+    const diff    = newBal - prevBal;
+    const won     = diff > 0;
+
+    addZMBHistory(won ? '⚔️ Battle Win' : '💀 Battle Loss', diff);
+
+    const targetBox = document.getElementById('target-box');
+    if (won) {
+      attackerBox.classList.add('victory-bounce','glow-pulse');
+      targetBox.classList.add('defeat-fall');
+      setTimeout(() => { attackerBox.classList.remove('victory-bounce','glow-pulse'); targetBox.classList.remove('defeat-fall'); }, 2000);
+    } else {
+      attackerBox.classList.add('battle-shake','battle-flash');
+      setTimeout(() => attackerBox.classList.remove('battle-shake','battle-flash'), 1000);
+    }
+
+    resultDiv.className = 'battle-result-box show ' + (won ? 'win' : 'loss');
+    document.getElementById('battle-emoji').textContent       = won ? '🏆' : '💀';
+    document.getElementById('battle-outcome-text').className  = 'result-text ' + (won ? 'win' : 'loss');
+    document.getElementById('battle-outcome-text').textContent = won ? 'VICTORY!' : 'DEFEAT';
+    document.getElementById('battle-detail').innerHTML = won
+      ? `You won <span style="color:var(--amber);font-weight:800">+${diff} ZMB</span>! New zombie spawned!`
+      : `You lost <span style="color:var(--red);font-weight:800">${Math.abs(diff)} ZMB</span>. Try again!`;
+
+    showAlert('battle',
+      won ? '🏆 Victory! +' + diff + ' ZMB earned!' : '💀 Defeated. -' + betAmount + ' ZMB lost.',
+      won ? 'success' : 'error');
+
+    await loadZombies();
+  } catch(e) {
+    const msg = e.message.includes('cooldown') || e.message.includes('ready') ? 'Zombie is on cooldown!'
+              : e.message.includes('Insufficient ZMB') ? 'Not enough ZMB! Buy more coins.'
+              : e.message.includes('onlyOwnerOf') ? "You don't own that zombie."
+              : e.message;
+    showAlert('battle', msg, 'error');
+    attackerBox.classList.add('battle-shake');
+    setTimeout(() => attackerBox.classList.remove('battle-shake'), 500);
+  }
+};
+
+</script>
+
+<!-- ══════════════════════════════════════ ZOMBIE DETAIL MODAL -->
+<div class="zmodal-overlay" id="zombie-detail-modal" onclick="closeZombieModal(event)">
+  <div class="zmodal" id="zombie-detail-content">
+    <button class="zmodal-close" onclick="closeZombieModal()">✕</button>
+    <div class="zmodal-body">
+      <div id="zm-avatar"></div>
+      <div class="zmodal-info">
+        <div id="zm-kitty-badge" class="zm-kitty-badge" style="display:none">✦ KITTY DNA</div>
+        <h2 id="zm-name"></h2>
+        <div class="zm-level" id="zm-level"></div>
+        <div class="zm-status" id="zm-status"></div>
+        <div class="zmodal-stats">
+          <div class="zmodal-stat">
+            <div class="zs-val" id="zm-wins" style="color:#00ff88"></div>
+            <div class="zs-lbl">Wins</div>
+          </div>
+          <div class="zmodal-stat">
+            <div class="zs-val" id="zm-losses" style="color:#ff4444"></div>
+            <div class="zs-lbl">Losses</div>
+          </div>
+          <div class="zmodal-stat">
+            <div class="zs-val" id="zm-wr" style="color:#fbbf24"></div>
+            <div class="zs-lbl">Win Rate</div>
+          </div>
+        </div>
+        <div class="zm-winrate-bar">
+          <div class="zm-winrate-fill" id="zm-wr-bar"></div>
+        </div>
+        <div class="zm-dna-box">
+          <div class="zm-dna-label">DNA Sequence</div>
+          <div class="zm-dna-val" id="zm-dna"></div>
+          <div class="zm-dna-segments" id="zm-dna-segs"></div>
+        </div>
+        <div class="zm-owner">
+          <span style="color:#4a6080">Owner:</span>
+          <span id="zm-owner"></span>
+        </div>
+        <div class="zm-actions" id="zm-actions"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

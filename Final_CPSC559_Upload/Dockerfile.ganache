@@ -1,0 +1,13 @@
+FROM node:18
+
+RUN npm install -g ganache
+
+EXPOSE 8545
+
+CMD ["ganache", \
+     "--server.host", "0.0.0.0", \
+     "--server.port", "8545", \
+     "--wallet.totalAccounts", "10", \
+     "--wallet.defaultBalance", "1000", \
+     "--chain.networkId", "1337", \
+     "--chain.chainId", "1337"]
